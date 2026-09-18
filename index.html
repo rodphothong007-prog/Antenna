@@ -57,11 +57,12 @@
       box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
     }
 
-    /* 3D Canvas Viewport */
+    /* 3D & 2D Canvas Viewport (Black Frame) */
     .viewport-3d-container {
       position: relative;
       width: 100%;
-      height: 490px;
+      height: 520px;
+      min-height: 520px;
       background: radial-gradient(circle at 50% 25%, #1E293B 0%, #0F172A 65%, #020617 100%);
       border-radius: 1rem;
       overflow: hidden;
@@ -117,10 +118,10 @@
       transform: translateY(-1px);
     }
     .viewport-3d-btn.active {
-      background: #0284C7;
-      border-color: #38BDF8;
-      color: #FFFFFF;
-      box-shadow: 0 0 12px rgba(2, 132, 199, 0.6);
+      background: #0284C7 !important;
+      border-color: #38BDF8 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 0 12px rgba(2, 132, 199, 0.6) !important;
     }
 
     .input-theme, .input-yellow {
@@ -147,16 +148,21 @@
     }
     .svg-leg-node:hover {
       transform: scale(1.12);
-      filter: drop-shadow(0 4px 8px rgba(15, 23, 42, 0.35));
+      filter: drop-shadow(0 4px 12px rgba(56, 189, 248, 0.6));
     }
     .active-antenna-line {
-      stroke: #0284C7 !important;
-      stroke-width: 5 !important;
-      filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.6));
+      stroke: #38BDF8 !important;
+      stroke-width: 4.5 !important;
+      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.8)) !important;
     }
     .active-antenna-text {
-      fill: #0369A1 !important;
+      fill: #38BDF8 !important;
       font-weight: 800 !important;
+      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.5));
+    }
+    .active-antenna-text tspan {
+      fill: #FFFFFF !important;
+      font-weight: 700 !important;
     }
     
     /* 3D Height Comparison Bar Styles */
@@ -451,29 +457,29 @@
       <div class="glass-card glass-card-3d rounded-2xl p-6 custom-shadow border-t-4 border-slate-800">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 mb-4 gap-2">
           <div class="flex items-center gap-2">
-            <div class="p-2.5 rounded-xl bg-slate-900 text-sky-400 font-bold shadow-md">
-              🧊
+            <div class="p-2.5 rounded-xl bg-slate-900 text-sky-400 font-bold shadow-md text-lg" id="diagram_header_icon">
+              📐
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <h3 class="font-bold text-slate-800 text-base">โมเดลโครงสร้างเสา 3 มิติ (3D Interactive Tower)</h3>
+                <h3 class="font-bold text-slate-800 text-base" id="diagram_header_title">ผังโครงสร้างเสา 2 มิติ (2D Top View Diagram)</h3>
                 <span id="badge_diagram_rod" class="text-xs font-mono font-bold text-white bg-sky-600 border border-sky-700 px-2 py-0.5 rounded-md shadow-sm">
                   เสาขา A (ล่อฟ้า ⚡)
                 </span>
               </div>
-              <p class="text-xs text-slate-500">หมุน 360° ซูมดูมุมจับยึดและกรวยป้องกันฟ้าผ่าได้แบบ Real-time</p>
+              <p class="text-xs text-slate-500" id="diagram_header_sub">ผังแสดงตำแหน่งขาเสา A, B, C, D และมุมจับยึดสายอากาศ Omni ในกรอบสีดำ</p>
             </div>
           </div>
-          <!-- Diagram View Switcher (3D / 2D / Static) -->
+          <!-- Diagram View Switcher (2D / 3D / Static) -->
           <div class="inline-flex rounded-xl border border-slate-300 p-1 bg-slate-100 text-xs shadow-inner">
-            <button type="button" onclick="setDiagramView('3d')" id="tab_view_3d"
+            <button type="button" onclick="setDiagramView('interactive')" id="tab_view_interactive"
                     class="px-3 py-1.5 font-bold rounded-lg bg-slate-900 text-white shadow-sm transition flex items-center gap-1.5">
-              <span>🧊 โมเดล 3D</span>
+              <span>📐 ผัง 2D Top View</span>
               <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
             </button>
-            <button type="button" onclick="setDiagramView('interactive')" id="tab_view_interactive"
+            <button type="button" onclick="setDiagramView('3d')" id="tab_view_3d"
                     class="px-3 py-1.5 font-medium rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1">
-              <span>📐 ผัง 2D Top View</span>
+              <span>🧊 โมเดล 3D</span>
             </button>
             <button type="button" onclick="setDiagramView('static')" id="tab_view_static"
                     class="px-3 py-1.5 font-medium rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1">
@@ -482,188 +488,261 @@
           </div>
         </div>
 
-        <!-- 0. Interactive 3D WebGL Canvas Container (DEFAULT ACTIVE) -->
-        <div id="diagram_3d_container" class="viewport-3d-container flex flex-col justify-center items-center relative">
-          <!-- 3D Viewport Controls Toolbar -->
-          <div class="viewport-3d-toolbar">
-            <div class="flex items-center gap-1.5 flex-wrap">
+        <!-- ================= THE BLACK FRAME (UNIFIED MAIN VIEWPORT) ================= -->
+        <div id="main_black_viewport" class="viewport-3d-container flex flex-col justify-center items-center relative select-none">
+          
+          <!-- View 1: Interactive 2D SVG Diagram (INSIDE THE BLACK FRAME) -->
+          <div id="diagram_interactive_container" class="w-full h-full flex flex-col justify-center items-center relative p-2 select-none">
+            <!-- 2D Viewport Controls Toolbar -->
+            <div class="viewport-3d-toolbar">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="viewport-3d-badge flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                  <span>ผัง 2D Top View (แปลนเสา)</span>
+                </span>
+                <span class="viewport-3d-badge text-sky-300 font-mono" id="hud_2d_angle">
+                  มุมจับยึด: 90°
+                </span>
+              </div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <button type="button" onclick="selectRodPole('A')" id="btn_2d_pole_a" class="viewport-3d-btn active" title="เลือกล่อฟ้าที่ขา A">
+                  ⚡ ขา A
+                </button>
+                <button type="button" onclick="selectRodPole('B')" id="btn_2d_pole_b" class="viewport-3d-btn" title="เลือกล่อฟ้าที่ขา B">
+                  ขา B
+                </button>
+                <button type="button" onclick="selectRodPole('C')" id="btn_2d_pole_c" class="viewport-3d-btn" title="เลือกล่อฟ้าที่ขา C">
+                  ขา C
+                </button>
+                <button type="button" onclick="selectRodPole('D')" id="btn_2d_pole_d" class="viewport-3d-btn" title="เลือกล่อฟ้าที่ขา D">
+                  ขา D
+                </button>
+              </div>
+            </div>
+
+            <!-- SVG Graphic Canvas inside the Black Frame -->
+            <div class="w-full h-full flex items-center justify-center pt-8 pb-10">
+              <svg viewBox="0 0 900 630" class="w-full h-full max-h-[440px] select-none" style="filter: drop-shadow(0 10px 25px rgba(0,0,0,0.5));">
+                <defs>
+                  <filter id="glow-filter" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3.5" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                  <filter id="shadow-filter" x="-10%" y="-10%" width="130%" height="130%">
+                    <feDropShadow dx="2" dy="4" stdDeviation="4" flood-opacity="0.5"/>
+                  </filter>
+                  <linearGradient id="tower-dark-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#1E293B" stop-opacity="0.95" />
+                    <stop offset="50%" stop-color="#0F172A" stop-opacity="0.9" />
+                    <stop offset="100%" stop-color="#020617" stop-opacity="0.95" />
+                  </linearGradient>
+                </defs>
+
+                <!-- Center Square Tower Face with high-tech slate/cyan finish -->
+                <polygon points="320,180 580,180 580,440 320,440" 
+                         fill="url(#tower-dark-grad)" stroke="#38BDF8" stroke-width="2.5" />
+                
+                <!-- Diagonal Line A to C -->
+                <line x1="320" y1="180" x2="580" y2="440" 
+                      stroke="#38BDF8" stroke-width="2.5" stroke-dasharray="8,5" opacity="0.85" />
+
+                <!-- Labels on Tower -->
+                <text x="450" y="160" text-anchor="middle" font-size="15" font-weight="700" fill="#F8FAFC">ความกว้างหน้าเสา</text>
+                <text x="465" y="295" text-anchor="middle" font-size="15" font-weight="700" fill="#38BDF8">ความกว้างด้านแยงมุม</text>
+
+                <!-- ================= Antenna Lines ================= -->
+                <!-- Leg A Antennas -->
+                <line id="line_a1" x1="320" y1="180" x2="320" y2="70" stroke="#64748B" stroke-width="3" />
+                <text id="txt_a1" x="320" y="45" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">A1<tspan x="320" dy="18" font-size="13" fill="#64748B">90 องศา</tspan></text>
+
+                <line id="line_a2" x1="320" y1="180" x2="215" y2="90" stroke="#64748B" stroke-width="3" />
+                <text id="txt_a2" x="190" y="70" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">A2<tspan x="190" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
+
+                <line id="line_a3" x1="320" y1="180" x2="180" y2="180" stroke="#64748B" stroke-width="3" />
+                <text id="txt_a3" x="140" y="170" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">A3<tspan x="140" dy="18" font-size="13" fill="#64748B">180 องศา</tspan></text>
+
+                <!-- Leg B Antennas -->
+                <line id="line_b1" x1="580" y1="180" x2="580" y2="70" stroke="#64748B" stroke-width="3" />
+                <text id="txt_b1" x="580" y="45" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">B1<tspan x="580" dy="18" font-size="13" fill="#64748B">90 องศา</tspan></text>
+
+                <line id="line_b2" x1="580" y1="180" x2="685" y2="90" stroke="#64748B" stroke-width="3" />
+                <text id="txt_b2" x="715" y="70" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">B2<tspan x="715" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
+
+                <line id="line_b3" x1="580" y1="180" x2="720" y2="180" stroke="#64748B" stroke-width="3" />
+                <text id="txt_b3" x="760" y="170" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">B3<tspan x="760" dy="18" font-size="13" fill="#64748B">180 องศา</tspan></text>
+
+                <!-- Leg C Antennas -->
+                <line id="line_c1" x1="580" y1="440" x2="720" y2="440" stroke="#64748B" stroke-width="3" />
+                <text id="txt_c1" x="760" y="430" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">C1<tspan x="760" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
+
+                <line id="line_c2" x1="580" y1="440" x2="685" y2="530" stroke="#64748B" stroke-width="3" />
+                <text id="txt_c2" x="715" y="550" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">C2<tspan x="715" dy="18" font-size="13" fill="#64748B">180 องศา</tspan></text>
+
+                <line id="line_c3" x1="580" y1="440" x2="580" y2="550" stroke="#64748B" stroke-width="3" />
+                <text id="txt_c3" x="580" y="580" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">C3<tspan x="580" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
+
+                <!-- Leg D Antennas -->
+                <line id="line_d1" x1="320" y1="440" x2="180" y2="440" stroke="#64748B" stroke-width="3" />
+                <text id="txt_d1" x="140" y="430" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">D1<tspan x="140" dy="18" font-size="13" fill="#64748B">90 องศา</tspan></text>
+
+                <line id="line_d2" x1="320" y1="440" x2="215" y2="530" stroke="#64748B" stroke-width="3" />
+                <text id="txt_d2" x="190" y="550" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">D2<tspan x="190" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
+
+                <line id="line_d3" x1="320" y1="440" x2="320" y2="550" stroke="#64748B" stroke-width="3" />
+                <text id="txt_d3" x="320" y="580" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">D3<tspan x="320" dy="18" font-size="13" fill="#64748B">180 องศา</tspan></text>
+
+                <!-- ================= DYNAMIC SKY-BLUE LIGHTNING BOLT ================= -->
+                <g id="svg_dynamic_lightning" transform="translate(230, 130)" style="transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                  <!-- Electric Sky Blue & Silver Lightning Shape -->
+                  <polygon points="0,35 45,10 32,32 68,26 18,80 30,45 0,55" 
+                           fill="#0284C7" stroke="#38BDF8" stroke-width="2" filter="url(#shadow-filter)" />
+                  <polygon points="5,38 42,15 32,33 62,28 22,72 30,46 5,53" 
+                           fill="#38BDF8" opacity="0.9" />
+                  <polygon points="10,40 38,20 30,34 52,30 25,64 28,47 10,50" 
+                           fill="#FFFFFF" opacity="0.95" />
+                  <!-- Indicator Badge -->
+                  <rect x="-15" y="-18" width="85" height="22" rx="6" fill="#020617" stroke="#38BDF8" stroke-width="1.5" opacity="0.95" />
+                  <text x="27" y="-3" text-anchor="middle" font-size="11" font-weight="700" fill="#38BDF8">⚡ ล่อฟ้า</text>
+                </g>
+
+                <!-- ================= 4 Tower Leg Nodes (Clickable) ================= -->
+                <!-- Leg A Node -->
+                <g class="svg-leg-node" onclick="selectRodPole('A')" transform="translate(320, 180)">
+                  <circle id="svg_circle_a" r="28" fill="#0284C7" stroke="#FFFFFF" stroke-width="4" filter="url(#shadow-filter)" />
+                  <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#FFFFFF">A</text>
+                </g>
+
+                <!-- Leg B Node -->
+                <g class="svg-leg-node" onclick="selectRodPole('B')" transform="translate(580, 180)">
+                  <circle id="svg_circle_b" r="28" fill="#334155" stroke="#CBD5E1" stroke-width="2.5" filter="url(#shadow-filter)" />
+                  <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#FFFFFF">B</text>
+                </g>
+
+                <!-- Leg C Node -->
+                <g class="svg-leg-node" onclick="selectRodPole('C')" transform="translate(580, 440)">
+                  <circle id="svg_circle_c" r="28" fill="#0F172A" stroke="#38BDF8" stroke-width="3" filter="url(#shadow-filter)" />
+                  <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#38BDF8">C</text>
+                </g>
+
+                <!-- Leg D Node -->
+                <g class="svg-leg-node" onclick="selectRodPole('D')" transform="translate(320, 440)">
+                  <circle id="svg_circle_d" r="28" fill="#334155" stroke="#CBD5E1" stroke-width="2.5" filter="url(#shadow-filter)" />
+                  <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#FFFFFF">D</text>
+                </g>
+
+              </svg>
+            </div>
+
+            <!-- 2D HUD Telemetry Overlay -->
+            <div class="absolute bottom-3 left-3 z-10 pointer-events-none hidden sm:block">
+              <div class="bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-slate-300 text-[11px] px-3 py-2 rounded-xl mono space-y-0.5 shadow-xl">
+                <div class="flex items-center gap-2">
+                  <span class="text-sky-400 font-bold">⚡ ขาล่อฟ้า:</span>
+                  <span id="hud_2d_rod_leg" class="text-white font-semibold">ขา A (6.50 m)</span>
+                  <span class="text-slate-600">|</span>
+                  <span class="text-sky-400 font-bold">🎯 ตรงข้าม:</span>
+                  <span id="hud_2d_opp_leg" class="text-sky-200 font-semibold">ขา C</span>
+                </div>
+                <div class="text-[10px] text-slate-400 pt-0.5 border-t border-slate-800">
+                  💡 คลิกวงกลม A, B, C, D บนภาพ หรือปุ่มด้านล่างเพื่อเลือกตำแหน่งขาเสาที่มีล่อฟ้า
+                </div>
+              </div>
+            </div>
+
+            <!-- 2D Legend Overlay -->
+            <div class="absolute bottom-3 right-3 z-10 pointer-events-none">
+              <div class="bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-[11px] px-3 py-1.5 rounded-xl text-slate-300 flex items-center gap-2.5 shadow-xl">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 shadow-sm"></span> ⚡ ล่อฟ้า</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-sky-400"></span> 🎯 ตรงข้าม</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-600 border border-slate-400"></span> 📡 ด้านข้าง</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- View 2: Interactive 3D WebGL Canvas Container (INSIDE THE BLACK FRAME) -->
+          <div id="diagram_3d_container" class="w-full h-full flex flex-col justify-center items-center relative hidden">
+            <!-- 3D Viewport Controls Toolbar -->
+            <div class="viewport-3d-toolbar">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="viewport-3d-badge flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                  <span>3D WebGL Engine</span>
+                </span>
+                <button type="button" onclick="set3DCameraPreset('iso')" id="btn_cam_iso" class="viewport-3d-btn active" title="มุมมอง 3 มิติรอบด้าน">
+                  🎥 3D Orbit
+                </button>
+                <button type="button" onclick="set3DCameraPreset('top')" id="btn_cam_top" class="viewport-3d-btn" title="มุมมองก้มจากด้านบน">
+                  🔝 Top View
+                </button>
+                <button type="button" onclick="set3DCameraPreset('side')" id="btn_cam_side" class="viewport-3d-btn" title="มุมมองระนาบด้านข้าง">
+                  ↔️ Side View
+                </button>
+                <button type="button" onclick="set3DCameraPreset('apex')" id="btn_cam_apex" class="viewport-3d-btn" title="ซูมเจาะลึกยอดเสาและล่อฟ้า">
+                  🗼 Apex Zoom
+                </button>
+              </div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <button type="button" onclick="toggle3DProtectionCone()" id="btn_toggle_cone" class="viewport-3d-btn active" title="เปิด/ปิด กรวยมุมป้องกันฟ้าผ่า 3D">
+                  🛡️ กรวยป้องกัน: <span id="lbl_cone_status">ON</span>
+                </button>
+                <button type="button" onclick="toggle3DAutoRotate()" id="btn_toggle_rotate" class="viewport-3d-btn active" title="เปิด/ปิด การหมุน 3D อัตโนมัติ">
+                  🔄 หมุน 3D: <span id="lbl_rotate_status">ON</span>
+                </button>
+                <button type="button" onclick="reset3DCamera()" class="viewport-3d-btn" title="รีเซ็ตตำแหน่งกล้อง">
+                  🔁 Reset
+                </button>
+              </div>
+            </div>
+
+            <!-- Canvas target for Three.js -->
+            <div id="three_canvas_container" class="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+            <!-- 3D HUD Telemetry Overlay -->
+            <div class="absolute bottom-3 left-3 z-10 pointer-events-none hidden sm:block">
+              <div class="bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-slate-300 text-[11px] px-3 py-2 rounded-xl mono space-y-0.5 shadow-xl">
+                <div class="flex items-center gap-2">
+                  <span class="text-sky-400 font-bold">⚡ เสาล่อฟ้า:</span>
+                  <span id="hud_rod_leg" class="text-white font-semibold">ขา A (6.50 m)</span>
+                  <span class="text-slate-600">|</span>
+                  <span class="text-sky-400 font-bold">📐 มุมจับยึด:</span>
+                  <span id="hud_angle" class="text-white font-semibold">90°</span>
+                </div>
+                <div class="text-[10px] text-slate-400 pt-0.5 border-t border-slate-800">
+                  🖱️ คลิกลากเมาส์เพื่อหมุน 360° | เลื่อน Scroll ซูมเข้า-ออก | คลิกขวาลากเพื่อแพน
+                </div>
+              </div>
+            </div>
+
+            <!-- 3D Legend Overlay -->
+            <div class="absolute bottom-3 right-3 z-10 pointer-events-none">
+              <div class="bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-[11px] px-3 py-1.5 rounded-xl text-slate-300 flex items-center gap-2.5 shadow-xl">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 shadow-sm"></span> ⚡ ล่อฟ้า</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-white border border-slate-400"></span> 📡 Omni</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500/40 border border-sky-400"></span> 🛡️ กรวยป้องกัน</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- View 3: Static Image Container (Drawing Picture 62 from Excel, INSIDE THE BLACK FRAME) -->
+          <div id="diagram_static_container" class="w-full h-full flex flex-col justify-center items-center relative p-4 hidden select-none">
+            <div class="viewport-3d-toolbar">
               <span class="viewport-3d-badge flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
-                <span>3D WebGL Engine</span>
+                <span>🖼️ ภาพร่างไดอะแกรมต้นฉบับจากไฟล์ Excel (Drawing 62)</span>
               </span>
-              <button type="button" onclick="set3DCameraPreset('iso')" id="btn_cam_iso" class="viewport-3d-btn active" title="มุมมอง 3 มิติรอบด้าน">
-                🎥 3D Orbit
-              </button>
-              <button type="button" onclick="set3DCameraPreset('top')" id="btn_cam_top" class="viewport-3d-btn" title="มุมมองก้มจากด้านบน">
-                🔝 Top View
-              </button>
-              <button type="button" onclick="set3DCameraPreset('side')" id="btn_cam_side" class="viewport-3d-btn" title="มุมมองระนาบด้านข้าง">
-                ↔️ Side View
-              </button>
-              <button type="button" onclick="set3DCameraPreset('apex')" id="btn_cam_apex" class="viewport-3d-btn" title="ซูมเจาะลึกยอดเสาและล่อฟ้า">
-                🗼 Apex Zoom
-              </button>
+              <span class="viewport-3d-badge text-sky-400 font-mono">สูตรคำนวน ANT_90 องศา.xlsx</span>
             </div>
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <button type="button" onclick="toggle3DProtectionCone()" id="btn_toggle_cone" class="viewport-3d-btn active" title="เปิด/ปิด กรวยมุมป้องกันฟ้าผ่า 3D">
-                🛡️ กรวยป้องกัน: <span id="lbl_cone_status">ON</span>
-              </button>
-              <button type="button" onclick="toggle3DAutoRotate()" id="btn_toggle_rotate" class="viewport-3d-btn active" title="เปิด/ปิด การหมุน 3D อัตโนมัติ">
-                🔄 หมุน 3D: <span id="lbl_rotate_status">ON</span>
-              </button>
-              <button type="button" onclick="reset3DCamera()" class="viewport-3d-btn" title="รีเซ็ตตำแหน่งกล้อง">
-                🔁 Reset
-              </button>
+            <div class="flex items-center justify-center w-full h-full pt-8 pb-8">
+              <img src="antenna_diagram.png" 
+                   alt="Antenna Tower Diagram" 
+                   class="max-h-[420px] max-w-full object-contain rounded-xl shadow-2xl bg-white p-3 border border-slate-700">
             </div>
-          </div>
-
-          <!-- Canvas target for Three.js -->
-          <div id="three_canvas_container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
-
-          <!-- 3D HUD Telemetry Overlay -->
-          <div class="absolute bottom-3 left-3 z-10 pointer-events-none hidden sm:block">
-            <div class="bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-slate-300 text-[11px] px-3 py-2 rounded-xl mono space-y-0.5 shadow-xl">
-              <div class="flex items-center gap-2">
-                <span class="text-sky-400 font-bold">⚡ เสาล่อฟ้า:</span>
-                <span id="hud_rod_leg" class="text-white font-semibold">ขา A (6.50 m)</span>
-                <span class="text-slate-600">|</span>
-                <span class="text-sky-400 font-bold">📐 มุมจับยึด:</span>
-                <span id="hud_angle" class="text-white font-semibold">90°</span>
-              </div>
-              <div class="text-[10px] text-slate-400 pt-0.5 border-t border-slate-800">
-                🖱️ คลิกลากเมาส์เพื่อหมุน 360° | เลื่อน Scroll ซูมเข้า-ออก | คลิกขวาลากเพื่อแพน
+            <div class="absolute bottom-3 left-3 z-10 pointer-events-none hidden sm:block">
+              <div class="bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-slate-300 text-[11px] px-3 py-1.5 rounded-xl mono shadow-xl">
+                📐 แบบภาพร่างแสดงการวางมุมรอบเสา 4 ขาตามชีต 90องศา ใน Excel
               </div>
             </div>
           </div>
 
-          <!-- 3D Legend Overlay -->
-          <div class="absolute bottom-3 right-3 z-10 pointer-events-none">
-            <div class="bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-[11px] px-3 py-1.5 rounded-xl text-slate-300 flex items-center gap-2.5 shadow-xl">
-              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 shadow-sm"></span> ⚡ ล่อฟ้า</span>
-              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-white border border-slate-400"></span> 📡 Omni</span>
-              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500/40 border border-sky-400"></span> 🛡️ กรวยป้องกัน</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 1. Interactive SVG Canvas (Lightning bolt actively moves to selected leg) -->
-        <div id="diagram_interactive_container" class="rounded-2xl overflow-hidden border border-slate-200 bg-white p-2 shadow-inner relative justify-center items-center hidden">
-          <svg viewBox="0 0 900 630" class="w-full h-auto max-h-[440px] select-none">
-            <defs>
-              <filter id="glow-filter" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="3" result="blur" />
-                <feComposite in="SourceGraphic" in2="blur" operator="over" />
-              </filter>
-              <filter id="shadow-filter" x="-10%" y="-10%" width="130%" height="130%">
-                <feDropShadow dx="2" dy="4" stdDeviation="3" flood-opacity="0.25"/>
-              </filter>
-              <linearGradient id="silver-tower-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#F8FAFC" />
-                <stop offset="50%" stop-color="#E2E8F0" />
-                <stop offset="100%" stop-color="#CBD5E1" />
-              </linearGradient>
-            </defs>
-
-            <!-- Center Square Tower Face with metallic silver finish -->
-            <polygon points="320,180 580,180 580,440 320,440" 
-                     fill="url(#silver-tower-grad)" stroke="#0F172A" stroke-width="3" />
-            
-            <!-- Diagonal Line A to C -->
-            <line x1="320" y1="180" x2="580" y2="440" 
-                  stroke="#475569" stroke-width="3" stroke-dasharray="8,5" />
-
-            <!-- Labels on Tower -->
-            <text x="450" y="160" text-anchor="middle" font-size="15" font-weight="600" fill="#0F172A">ความกว้างหน้าเสา</text>
-            <text x="465" y="295" text-anchor="middle" font-size="15" font-weight="600" fill="#0F172A">ความกว้างด้านแยงมุม</text>
-
-            <!-- ================= Antenna Lines ================= -->
-            <!-- Leg A Antennas -->
-            <line id="line_a1" x1="320" y1="180" x2="320" y2="70" stroke="#64748B" stroke-width="3" />
-            <text id="txt_a1" x="320" y="45" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">A1<tspan x="320" dy="18" font-size="13">90 องศา</tspan></text>
-
-            <line id="line_a2" x1="320" y1="180" x2="215" y2="90" stroke="#64748B" stroke-width="3" />
-            <text id="txt_a2" x="190" y="70" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">A2<tspan x="190" dy="18" font-size="13">135 องศา</tspan></text>
-
-            <line id="line_a3" x1="320" y1="180" x2="180" y2="180" stroke="#64748B" stroke-width="3" />
-            <text id="txt_a3" x="140" y="170" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">A3<tspan x="140" dy="18" font-size="13">180 องศา</tspan></text>
-
-            <!-- Leg B Antennas -->
-            <line id="line_b1" x1="580" y1="180" x2="580" y2="70" stroke="#64748B" stroke-width="3" />
-            <text id="txt_b1" x="580" y="45" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">B1<tspan x="580" dy="18" font-size="13">90 องศา</tspan></text>
-
-            <line id="line_b2" x1="580" y1="180" x2="685" y2="90" stroke="#64748B" stroke-width="3" />
-            <text id="txt_b2" x="715" y="70" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">B2<tspan x="715" dy="18" font-size="13">135 องศา</tspan></text>
-
-            <line id="line_b3" x1="580" y1="180" x2="720" y2="180" stroke="#64748B" stroke-width="3" />
-            <text id="txt_b3" x="760" y="170" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">B3<tspan x="760" dy="18" font-size="13">180 องศา</tspan></text>
-
-            <!-- Leg C Antennas -->
-            <line id="line_c1" x1="580" y1="440" x2="720" y2="440" stroke="#64748B" stroke-width="3" />
-            <text id="txt_c1" x="760" y="430" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">C1<tspan x="760" dy="18" font-size="13">135 องศา</tspan></text>
-
-            <line id="line_c2" x1="580" y1="440" x2="685" y2="530" stroke="#64748B" stroke-width="3" />
-            <text id="txt_c2" x="715" y="550" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">C2<tspan x="715" dy="18" font-size="13">180 องศา</tspan></text>
-
-            <line id="line_c3" x1="580" y1="440" x2="580" y2="550" stroke="#64748B" stroke-width="3" />
-            <text id="txt_c3" x="580" y="580" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">C3<tspan x="580" dy="18" font-size="13">135 องศา</tspan></text>
-
-            <!-- Leg D Antennas -->
-            <line id="line_d1" x1="320" y1="440" x2="180" y2="440" stroke="#64748B" stroke-width="3" />
-            <text id="txt_d1" x="140" y="430" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">D1<tspan x="140" dy="18" font-size="13">90 องศา</tspan></text>
-
-            <line id="line_d2" x1="320" y1="440" x2="215" y2="530" stroke="#64748B" stroke-width="3" />
-            <text id="txt_d2" x="190" y="550" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">D2<tspan x="190" dy="18" font-size="13">135 องศา</tspan></text>
-
-            <line id="line_d3" x1="320" y1="440" x2="320" y2="550" stroke="#64748B" stroke-width="3" />
-            <text id="txt_d3" x="320" y="580" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">D3<tspan x="320" dy="18" font-size="13">180 องศา</tspan></text>
-
-            <!-- ================= DYNAMIC BLUE/SILVER LIGHTNING BOLT ================= -->
-            <g id="svg_dynamic_lightning" transform="translate(230, 130)" style="transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);">
-              <!-- Electric Sky Blue & Silver Lightning Shape -->
-              <polygon points="0,35 45,10 32,32 68,26 18,80 30,45 0,55" 
-                       fill="#0284C7" stroke="#0F172A" stroke-width="2.5" filter="url(#shadow-filter)" />
-              <polygon points="5,38 42,15 32,33 62,28 22,72 30,46 5,53" 
-                       fill="#38BDF8" opacity="0.85" />
-              <polygon points="10,40 38,20 30,34 52,30 25,64 28,47 10,50" 
-                       fill="#FFFFFF" opacity="0.8" />
-              <!-- Indicator Badge -->
-              <rect x="-15" y="-18" width="85" height="22" rx="6" fill="#0F172A" stroke="#38BDF8" stroke-width="1.5" opacity="0.95" />
-              <text x="27" y="-3" text-anchor="middle" font-size="11" font-weight="700" fill="#38BDF8">⚡ ล่อฟ้า</text>
-            </g>
-
-            <!-- ================= 4 Tower Leg Nodes (Clickable) ================= -->
-            <!-- Leg A Node -->
-            <g class="svg-leg-node" onclick="selectRodPole('A')" transform="translate(320, 180)">
-              <circle id="svg_circle_a" r="26" fill="#0284C7" stroke="#FFFFFF" stroke-width="4.5" filter="url(#shadow-filter)" />
-              <text y="6" text-anchor="middle" font-size="18" font-weight="800" fill="#FFFFFF">A</text>
-            </g>
-
-            <!-- Leg B Node -->
-            <g class="svg-leg-node" onclick="selectRodPole('B')" transform="translate(580, 180)">
-              <circle id="svg_circle_b" r="26" fill="#475569" stroke="#CBD5E1" stroke-width="3" filter="url(#shadow-filter)" />
-              <text y="6" text-anchor="middle" font-size="18" font-weight="800" fill="#FFFFFF">B</text>
-            </g>
-
-            <!-- Leg C Node -->
-            <g class="svg-leg-node" onclick="selectRodPole('C')" transform="translate(580, 440)">
-              <circle id="svg_circle_c" r="26" fill="#0F172A" stroke="#38BDF8" stroke-width="3" filter="url(#shadow-filter)" />
-              <text y="6" text-anchor="middle" font-size="18" font-weight="800" fill="#FFFFFF">C</text>
-            </g>
-
-            <!-- Leg D Node -->
-            <g class="svg-leg-node" onclick="selectRodPole('D')" transform="translate(320, 440)">
-              <circle id="svg_circle_d" r="26" fill="#475569" stroke="#CBD5E1" stroke-width="3" filter="url(#shadow-filter)" />
-              <text y="6" text-anchor="middle" font-size="18" font-weight="800" fill="#FFFFFF">D</text>
-            </g>
-
-          </svg>
-        </div>
-
-        <!-- 2. Static Image Container (Excel Drawing Picture 62) -->
-        <div id="diagram_static_container" class="rounded-2xl overflow-hidden border border-slate-200 bg-white p-3 shadow-inner relative justify-center items-center hidden">
-          <img src="antenna_diagram.png" 
-               alt="Antenna Tower Diagram" 
-               class="max-h-80 w-auto object-contain">
         </div>
 
         <!-- Interactive Clickable Callouts for diagram -->
@@ -1010,26 +1089,791 @@
     };
 
     function setDiagramView(view) {
+      const btn3D = document.getElementById('tab_view_3d');
       const btnInteractive = document.getElementById('tab_view_interactive');
       const btnStatic = document.getElementById('tab_view_static');
+      const container3D = document.getElementById('diagram_3d_container');
       const containerInteractive = document.getElementById('diagram_interactive_container');
       const containerStatic = document.getElementById('diagram_static_container');
+      const headerTitle = document.getElementById('diagram_header_title');
+      const headerSub = document.getElementById('diagram_header_sub');
+      const headerIcon = document.getElementById('diagram_header_icon');
 
-      if (view === 'interactive') {
-        btnInteractive.className = "px-3 py-1 font-semibold rounded-md bg-slate-900 text-white shadow-sm transition";
-        btnStatic.className = "px-3 py-1 font-medium rounded-md text-slate-600 hover:text-slate-900 transition";
-        containerInteractive.classList.remove('hidden');
-        containerInteractive.classList.add('flex');
-        containerStatic.classList.add('hidden');
-        containerStatic.classList.remove('flex');
-      } else {
-        btnStatic.className = "px-3 py-1 font-semibold rounded-md bg-slate-900 text-white shadow-sm transition";
-        btnInteractive.className = "px-3 py-1 font-medium rounded-md text-slate-600 hover:text-slate-900 transition";
-        containerStatic.classList.remove('hidden');
-        containerStatic.classList.add('flex');
-        containerInteractive.classList.add('hidden');
-        containerInteractive.classList.remove('flex');
+      // Reset all tab button styles
+      [btn3D, btnInteractive, btnStatic].forEach(b => {
+        if (b) {
+          b.className = "px-3 py-1.5 font-medium rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1";
+          const ping = b.querySelector('.animate-ping');
+          if (ping) ping.remove();
+        }
+      });
+
+      // Hide all view containers inside the black frame
+      [container3D, containerInteractive, containerStatic].forEach(c => {
+        if (c) {
+          c.classList.add('hidden');
+          c.classList.remove('flex');
+        }
+      });
+
+      const activeBadge = '<span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping ml-1"></span>';
+
+      if (view === 'interactive' || view === '2d') {
+        if (btnInteractive) {
+          btnInteractive.className = "px-3 py-1.5 font-bold rounded-lg bg-slate-900 text-white shadow-sm transition flex items-center gap-1";
+          btnInteractive.insertAdjacentHTML('beforeend', activeBadge);
+        }
+        if (containerInteractive) {
+          containerInteractive.classList.remove('hidden');
+          containerInteractive.classList.add('flex');
+        }
+        if (headerIcon) headerIcon.innerText = "📐";
+        if (headerTitle) headerTitle.innerText = "ผังโครงสร้างเสา 2 มิติ (2D Top View Diagram)";
+        if (headerSub) headerSub.innerText = "ผังแสดงตำแหน่งขาเสา A, B, C, D และมุมจับยึดสายอากาศ Omni ในกรอบสีดำ";
+      } else if (view === '3d') {
+        if (btn3D) {
+          btn3D.className = "px-3 py-1.5 font-bold rounded-lg bg-slate-900 text-white shadow-sm transition flex items-center gap-1";
+          btn3D.insertAdjacentHTML('beforeend', activeBadge);
+        }
+        if (container3D) {
+          container3D.classList.remove('hidden');
+          container3D.classList.add('flex');
+        }
+        if (headerIcon) headerIcon.innerText = "🧊";
+        if (headerTitle) headerTitle.innerText = "โมเดลโครงสร้างเสา 3 มิติ (3D Interactive Tower)";
+        if (headerSub) headerSub.innerText = "หมุน 360° ซูมดูมุมจับยึดและกรวยป้องกันฟ้าผ่าได้แบบ Real-time";
+        
+        if (renderer3D && camera3D) {
+          setTimeout(() => {
+            on3DWindowResize();
+          }, 60);
+        }
+      } else if (view === 'static') {
+        if (btnStatic) {
+          btnStatic.className = "px-3 py-1.5 font-bold rounded-lg bg-slate-900 text-white shadow-sm transition flex items-center gap-1";
+          btnStatic.insertAdjacentHTML('beforeend', activeBadge);
+        }
+        if (containerStatic) {
+          containerStatic.classList.remove('hidden');
+          containerStatic.classList.add('flex');
+        }
+        if (headerIcon) headerIcon.innerText = "🖼️";
+        if (headerTitle) headerTitle.innerText = "ภาพร่างต้นฉบับจาก Excel (Drawing 62)";
+        if (headerSub) headerSub.innerText = "ภาพสเก็ตช์อ้างอิงตำแหน่งและมุมจากไฟล์สูตรคำนวน ANT_90 องศา.xlsx";
       }
+    }
+
+    // ==========================================
+    // Three.js 3D WebGL Visualization Engine
+    // ==========================================
+    let scene3D = null;
+    let camera3D = null;
+    let renderer3D = null;
+    let controls3D = null;
+    let towerGroup3D = null;
+    let coneMesh3D = null;
+    let coneWire3D = null;
+    let autoRotate3D = true;
+    let isConeVisible3D = true;
+    let activeCamPreset3D = 'iso';
+    let camTweenId = null;
+
+    function init3DScene() {
+      const container = document.getElementById('three_canvas_container');
+      if (!container || typeof THREE === 'undefined') return;
+
+      const mainVp = document.getElementById('main_black_viewport');
+      const width = (mainVp && mainVp.clientWidth) ? mainVp.clientWidth : (container.clientWidth || 700);
+      const height = (mainVp && mainVp.clientHeight) ? mainVp.clientHeight : (container.clientHeight || 520);
+
+      // 1. Scene
+      scene3D = new THREE.Scene();
+      scene3D.fog = new THREE.FogExp2(0x020617, 0.015);
+
+      // 2. Camera
+      camera3D = new THREE.PerspectiveCamera(40, width / height, 0.5, 300);
+      camera3D.position.set(16, 17, 18);
+
+      // 3. Renderer
+      renderer3D = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer3D.setSize(width, height);
+      renderer3D.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer3D.shadowMap.enabled = true;
+      renderer3D.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.innerHTML = '';
+      container.appendChild(renderer3D.domElement);
+
+      // 4. Lighting (Cool White, Blue, Silver)
+      const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.8);
+      scene3D.add(ambientLight);
+
+      const mainSun = new THREE.DirectionalLight(0xffffff, 0.95);
+      mainSun.position.set(20, 35, 20);
+      mainSun.castShadow = true;
+      mainSun.shadow.mapSize.width = 1024;
+      mainSun.shadow.mapSize.height = 1024;
+      scene3D.add(mainSun);
+
+      const blueRim = new THREE.DirectionalLight(0x38bdf8, 0.65);
+      blueRim.position.set(-20, 15, -20);
+      scene3D.add(blueRim);
+
+      // 5. Controls (OrbitControls or Fallback)
+      if (typeof THREE.OrbitControls === 'function') {
+        controls3D = new THREE.OrbitControls(camera3D, renderer3D.domElement);
+        controls3D.enableDamping = true;
+        controls3D.dampingFactor = 0.06;
+        controls3D.maxPolarAngle = Math.PI / 2 + 0.03;
+        controls3D.minDistance = 3;
+        controls3D.maxDistance = 65;
+        controls3D.target.set(0, 7.5, 0);
+      } else {
+        setupFallbackControls(renderer3D.domElement);
+      }
+
+      // 6. Ground Platform & Grid
+      const groundGeo = new THREE.CylinderGeometry(20, 20, 0.2, 48);
+      const groundMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.85, metalness: 0.2 });
+      const groundPlate = new THREE.Mesh(groundGeo, groundMat);
+      groundPlate.position.y = -0.1;
+      groundPlate.receiveShadow = true;
+      scene3D.add(groundPlate);
+
+      const grid = new THREE.GridHelper(30, 30, 0x0284c7, 0x1e293b);
+      grid.position.y = 0.02;
+      scene3D.add(grid);
+
+      // Cardinal direction rings
+      [5, 10, 15].forEach(radius => {
+        const ringGeo = new THREE.RingGeometry(radius - 0.03, radius + 0.03, 64);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.y = 0.03;
+        scene3D.add(ring);
+      });
+
+      // Ground Cardinal Markers (N, E, S, W)
+      const markerN = createBadgeSprite("N (เหนือ)", "#0F172A", "#38BDF8", "#334155");
+      markerN.position.set(0, 0.4, -14);
+      markerN.scale.set(1.6, 0.5, 1);
+      scene3D.add(markerN);
+
+      const markerS = createBadgeSprite("S (ใต้)", "#0F172A", "#94A3B8", "#334155");
+      markerS.position.set(0, 0.4, 14);
+      markerS.scale.set(1.6, 0.5, 1);
+      scene3D.add(markerS);
+
+      const markerE = createBadgeSprite("E (ออก)", "#0F172A", "#94A3B8", "#334155");
+      markerE.position.set(14, 0.4, 0);
+      markerE.scale.set(1.6, 0.5, 1);
+      scene3D.add(markerE);
+
+      const markerW = createBadgeSprite("W (ตก)", "#0F172A", "#94A3B8", "#334155");
+      markerW.position.set(-14, 0.4, 0);
+      markerW.scale.set(1.6, 0.5, 1);
+      scene3D.add(markerW);
+
+      // 7. Window Resize Listener
+      window.addEventListener('resize', on3DWindowResize);
+
+      // 8. Animation Loop
+      animate3D();
+    }
+
+    function on3DWindowResize() {
+      const container = document.getElementById('main_black_viewport');
+      if (!container || !renderer3D || !camera3D) return;
+      const w = container.clientWidth || 700;
+      const h = container.clientHeight || 520;
+      camera3D.aspect = w / h;
+      camera3D.updateProjectionMatrix();
+      renderer3D.setSize(w, h);
+    }
+
+    function animate3D() {
+      requestAnimationFrame(animate3D);
+
+      if (controls3D) {
+        if (autoRotate3D) {
+          controls3D.autoRotate = true;
+          controls3D.autoRotateSpeed = 1.0;
+        } else {
+          controls3D.autoRotate = false;
+        }
+        controls3D.update();
+      } else if (towerGroup3D && autoRotate3D) {
+        towerGroup3D.rotation.y += 0.005;
+      }
+
+      if (renderer3D && scene3D && camera3D) {
+        renderer3D.render(scene3D, camera3D);
+      }
+    }
+
+    // Fallback mouse drag / wheel zoom if OrbitControls is unavailable
+    function setupFallbackControls(domElement) {
+      let isDragging = false;
+      let prevX = 0, prevY = 0;
+      let spherical = { radius: 26, theta: Math.PI / 4, phi: Math.PI / 3 };
+      const target = new THREE.Vector3(0, 7.5, 0);
+
+      function updateCam() {
+        spherical.phi = Math.max(0.12, Math.min(Math.PI / 2 + 0.02, spherical.phi));
+        camera3D.position.x = target.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+        camera3D.position.y = target.y + spherical.radius * Math.cos(spherical.phi);
+        camera3D.position.z = target.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+        camera3D.lookAt(target);
+      }
+
+      domElement.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        prevX = e.clientX;
+        prevY = e.clientY;
+        domElement.setPointerCapture(e.pointerId);
+      });
+
+      domElement.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - prevX;
+        const dy = e.clientY - prevY;
+        prevX = e.clientX;
+        prevY = e.clientY;
+        spherical.theta -= dx * 0.008;
+        spherical.phi -= dy * 0.008;
+        updateCam();
+      });
+
+      domElement.addEventListener('pointerup', (e) => {
+        isDragging = false;
+        try { domElement.releasePointerCapture(e.pointerId); } catch(err) {}
+      });
+
+      domElement.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        spherical.radius += e.deltaY * 0.02;
+        spherical.radius = Math.max(4, Math.min(60, spherical.radius));
+        updateCam();
+      }, { passive: false });
+
+      updateCam();
+    }
+
+    // Utility: Create cylinder between two 3D Vector3 points
+    function createCylinderBetweenPoints(p1, p2, radius, material) {
+      const direction = new THREE.Vector3().subVectors(p2, p1);
+      const length = direction.length();
+      if (length < 0.001) return new THREE.Group();
+
+      const cylinderGeo = new THREE.CylinderGeometry(radius, radius, length, 8);
+      const cylinder = new THREE.Mesh(cylinderGeo, material);
+      cylinder.castShadow = true;
+
+      const orientation = new THREE.Matrix4();
+      const position = new THREE.Vector3().addVectors(p1, direction.clone().multiplyScalar(0.5));
+      const up = new THREE.Vector3(0, 1, 0);
+
+      orientation.lookAt(p1, p2, up);
+      orientation.multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2));
+      cylinder.applyMatrix4(orientation);
+      cylinder.position.copy(position);
+      return cylinder;
+    }
+
+    // Utility: Create crisp 3D canvas billboard sprite badge
+    function createBadgeSprite(text, bgColor, textColor, borderColor) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 76;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = bgColor || '#0284C7';
+      ctx.strokeStyle = borderColor || '#38BDF8';
+      ctx.lineWidth = 3;
+
+      const r = 16, x = 3, y = 3, w = 250, h = 70;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.font = 'bold 28px Prompt, JetBrains Mono, sans-serif';
+      ctx.fillStyle = textColor || '#FFFFFF';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 128, 38);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.minFilter = THREE.LinearFilter;
+      const spriteMat = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.scale.set(1.8, 0.54, 1.0);
+      return sprite;
+    }
+
+    // Procedurally generate the complete 3D Tower Lattice, Lightning Rod, Cone, and Antennas
+    function build3DModel(p) {
+      if (!scene3D) return;
+
+      // Remove existing tower group
+      if (towerGroup3D) {
+        scene3D.remove(towerGroup3D);
+        towerGroup3D.traverse(child => {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) {
+            if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+            else child.material.dispose();
+          }
+        });
+      }
+
+      towerGroup3D = new THREE.Group();
+
+      const towerTopY = 10.0;
+      const W = Math.max(0.6, p.width);
+      const hw = W / 2;
+      const rodH = Math.max(1.0, p.rod);
+      const mDist = Math.max(0.5, p.mounting);
+      const omniH = Math.max(1.0, p.omni);
+      const tanVal = Math.max(0.1, p.tanP);
+
+      // Materials (Blue, White, Silver, Black)
+      const steelLegMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.28, metalness: 0.85 });
+      const steelBraceMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.35, metalness: 0.8 });
+      const platformMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.45, metalness: 0.7 });
+      const chromeRodMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.12, metalness: 0.95 });
+      const antennaBodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.22, metalness: 0.1 });
+      const bracketMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.35, metalness: 0.85 });
+
+      // Leg Top Positions matching 2D SVG
+      // Looking down: -Z is North, +Z is South, -X is West, +X is East
+      const legs = {
+        'A': { x: -hw, z: -hw, name: 'A' }, // Front-Left (North-West)
+        'B': { x:  hw, z: -hw, name: 'B' }, // Front-Right (North-East)
+        'C': { x:  hw, z:  hw, name: 'C' }, // Back-Right (South-East)
+        'D': { x: -hw, z:  hw, name: 'D' }  // Back-Left (South-West)
+      };
+
+      // 1. Concrete Pedestals at ground
+      ['A', 'B', 'C', 'D'].forEach(k => {
+        const pedGeo = new THREE.BoxGeometry(0.32, 0.25, 0.32);
+        const pedMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 });
+        const ped = new THREE.Mesh(pedGeo, pedMat);
+        ped.position.set(legs[k].x, 0.125, legs[k].z);
+        towerGroup3D.add(ped);
+      });
+
+      // 2. Main 4 Vertical Tubular Steel Legs
+      ['A', 'B', 'C', 'D'].forEach(k => {
+        const legGeo = new THREE.CylinderGeometry(0.048, 0.055, towerTopY, 12);
+        const legMesh = new THREE.Mesh(legGeo, steelLegMat);
+        legMesh.position.set(legs[k].x, towerTopY / 2, legs[k].z);
+        legMesh.castShadow = true;
+        towerGroup3D.add(legMesh);
+      });
+
+      // 3. Horizontal Bracing & Diagonal X-Braces (4 Bays)
+      const bayLevels = [0.2, 2.65, 5.1, 7.55, towerTopY];
+      const sidePairs = [
+        ['A', 'B'], // North face
+        ['B', 'C'], // East face
+        ['C', 'D'], // South face
+        ['D', 'A']  // West face
+      ];
+
+      // Horizontal square frames
+      bayLevels.forEach(y => {
+        sidePairs.forEach(([l1, l2]) => {
+          const p1 = new THREE.Vector3(legs[l1].x, y, legs[l1].z);
+          const p2 = new THREE.Vector3(legs[l2].x, y, legs[l2].z);
+          towerGroup3D.add(createCylinderBetweenPoints(p1, p2, 0.024, steelBraceMat));
+        });
+      });
+
+      // X-bracing between bays
+      for (let i = 0; i < bayLevels.length - 1; i++) {
+        const yLow = bayLevels[i];
+        const yHigh = bayLevels[i + 1];
+        sidePairs.forEach(([l1, l2]) => {
+          const p1Low = new THREE.Vector3(legs[l1].x, yLow, legs[l1].z);
+          const p2High = new THREE.Vector3(legs[l2].x, yHigh, legs[l2].z);
+          const p2Low = new THREE.Vector3(legs[l2].x, yLow, legs[l2].z);
+          const p1High = new THREE.Vector3(legs[l1].x, yHigh, legs[l1].z);
+
+          towerGroup3D.add(createCylinderBetweenPoints(p1Low, p2High, 0.016, steelBraceMat));
+          towerGroup3D.add(createCylinderBetweenPoints(p2Low, p1High, 0.016, steelBraceMat));
+        });
+      }
+
+      // 4. Top Platform Deck & Safety Railing
+      const deckGeo = new THREE.BoxGeometry(W * 1.08, 0.06, W * 1.08);
+      const deckMesh = new THREE.Mesh(deckGeo, platformMat);
+      deckMesh.position.set(0, towerTopY + 0.03, 0);
+      towerGroup3D.add(deckMesh);
+
+      // Top Handrail posts & railing (0.8m height)
+      const railH = 0.8;
+      const railMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.3 });
+      ['A', 'B', 'C', 'D'].forEach(k => {
+        const postGeo = new THREE.CylinderGeometry(0.018, 0.018, railH, 8);
+        const postMesh = new THREE.Mesh(postGeo, railMat);
+        postMesh.position.set(legs[k].x, towerTopY + railH / 2, legs[k].z);
+        towerGroup3D.add(postMesh);
+      });
+      sidePairs.forEach(([l1, l2]) => {
+        const p1 = new THREE.Vector3(legs[l1].x, towerTopY + railH, legs[l1].z);
+        const p2 = new THREE.Vector3(legs[l2].x, towerTopY + railH, legs[l2].z);
+        towerGroup3D.add(createCylinderBetweenPoints(p1, p2, 0.015, railMat));
+      });
+
+      // Reference Ring at Tower Top Level (72.00m)
+      const refRingGeo = new THREE.RingGeometry(W * 0.9, W * 0.93, 48);
+      const refRingMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.4, side: THREE.DoubleSide });
+      const refRing = new THREE.Mesh(refRingGeo, refRingMat);
+      refRing.rotation.x = -Math.PI / 2;
+      refRing.position.set(0, towerTopY + 0.05, 0);
+      towerGroup3D.add(refRing);
+
+      // 5. Lightning Rod on currentRodLeg
+      const rodLeg = legs[p.currentRodLeg] || legs['A'];
+      const rodBaseY = towerTopY;
+      const rodTipY = rodBaseY + rodH;
+
+      // Vertical Rod Cylinder
+      const rodPoleGeo = new THREE.CylinderGeometry(0.032, 0.04, rodH, 12);
+      const rodPoleMesh = new THREE.Mesh(rodPoleGeo, chromeRodMat);
+      rodPoleMesh.position.set(rodLeg.x, rodBaseY + rodH / 2, rodLeg.z);
+      rodPoleMesh.castShadow = true;
+      towerGroup3D.add(rodPoleMesh);
+
+      // Sharp Tip Cone
+      const rodTipGeo = new THREE.ConeGeometry(0.04, 0.4, 12);
+      const rodTipMesh = new THREE.Mesh(rodTipGeo, chromeRodMat);
+      rodTipMesh.position.set(rodLeg.x, rodTipY + 0.2, rodLeg.z);
+      towerGroup3D.add(rodTipMesh);
+
+      // Glowing Beacon Sphere & Pulsing Light
+      const beaconGeo = new THREE.SphereGeometry(0.13, 16, 16);
+      const beaconMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+      const beaconMesh = new THREE.Mesh(beaconGeo, beaconMat);
+      beaconMesh.position.set(rodLeg.x, rodTipY + 0.2, rodLeg.z);
+      towerGroup3D.add(beaconMesh);
+
+      const rodPointLight = new THREE.PointLight(0x38bdf8, 1.8, 16);
+      rodPointLight.position.set(rodLeg.x, rodTipY + 0.2, rodLeg.z);
+      towerGroup3D.add(rodPointLight);
+
+      // Lightning Rod Tip Floating 3D Badge
+      const tipBadge = createBadgeSprite("⚡ ปลายล่อฟ้า: " + (p.towerH + rodH).toFixed(2) + "m", "#0284C7", "#FFFFFF", "#38BDF8");
+      tipBadge.position.set(rodLeg.x, rodTipY + 0.95, rodLeg.z);
+      towerGroup3D.add(tipBadge);
+
+      // 6. 3D Holographic Protection Cone
+      const totalConeH = rodTipY + 0.2;
+      const coneBaseRadius = totalConeH * tanVal;
+
+      const coneGeo = new THREE.ConeGeometry(coneBaseRadius, totalConeH, 56, 14, true);
+      const coneSkinMat = new THREE.MeshBasicMaterial({
+        color: 0x0284c7,
+        transparent: true,
+        opacity: 0.15,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+      coneMesh3D = new THREE.Mesh(coneGeo, coneSkinMat);
+      coneMesh3D.position.set(rodLeg.x, totalConeH / 2, rodLeg.z);
+      coneMesh3D.visible = isConeVisible3D;
+      towerGroup3D.add(coneMesh3D);
+
+      const coneWireMat = new THREE.MeshBasicMaterial({
+        color: 0x38bdf8,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.32
+      });
+      coneWire3D = new THREE.Mesh(coneGeo, coneWireMat);
+      coneWire3D.position.copy(coneMesh3D.position);
+      coneWire3D.visible = isConeVisible3D;
+      towerGroup3D.add(coneWire3D);
+
+      // Protection boundary ring at tower top level
+      const coneTopR = (rodH + 0.2) * tanVal;
+      const coneTopRingGeo = new THREE.RingGeometry(coneTopR - 0.05, coneTopR + 0.05, 48);
+      const coneTopRingMat = new THREE.MeshBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.7, side: THREE.DoubleSide });
+      const coneTopRing = new THREE.Mesh(coneTopRingGeo, coneTopRingMat);
+      coneTopRing.rotation.x = -Math.PI / 2;
+      coneTopRing.position.set(rodLeg.x, towerTopY + 0.04, rodLeg.z);
+      coneTopRing.visible = isConeVisible3D;
+      towerGroup3D.add(coneTopRing);
+
+      // 7. 4 Omni Antennas Mounted to Legs A, B, C, D
+      ['A', 'B', 'C', 'D'].forEach(legKey => {
+        const leg = legs[legKey];
+        const isRod = (legKey === p.currentRodLeg);
+        const isOpp = (legKey === opposites[p.currentRodLeg]);
+
+        // Compute mounting arm offset vector based on angle
+        let dx = 0, dz = 0;
+        if (p.angle === 90) {
+          if (legKey === 'A' || legKey === 'D') dx = -mDist;
+          else dx = mDist;
+        } else if (p.angle === 135) {
+          const diag = mDist * Math.SQRT1_2;
+          if (legKey === 'A') { dx = -diag; dz = -diag; }
+          else if (legKey === 'B') { dx =  diag; dz = -diag; }
+          else if (legKey === 'C') { dx =  diag; dz =  diag; }
+          else { dx = -diag; dz =  diag; }
+        } else { // 180°
+          if (legKey === 'A' || legKey === 'B') dz = -mDist;
+          else dz = mDist;
+        }
+
+        const antX = leg.x + dx;
+        const antZ = leg.z + dz;
+
+        // Horizontal steel cantilever mounting arm
+        const pLeg = new THREE.Vector3(leg.x, towerTopY, leg.z);
+        const pAnt = new THREE.Vector3(antX, towerTopY, antZ);
+        towerGroup3D.add(createCylinderBetweenPoints(pLeg, pAnt, 0.034, steelBraceMat));
+
+        // Angled brace strut from leg at Y=8.8 to antenna mount collar
+        const pBraceLow = new THREE.Vector3(leg.x, towerTopY - 1.2, leg.z);
+        towerGroup3D.add(createCylinderBetweenPoints(pBraceLow, pAnt, 0.022, steelBraceMat));
+
+        // Antenna Vertical Elevation:
+        // Top of antenna is at: towerTopY - drop
+        const drop = p.drops[legKey] !== undefined ? p.drops[legKey] : 0;
+        const antTopY = towerTopY - drop;
+        const antCenterY = antTopY - (omniH / 2);
+
+        // Antenna Radome Cylinder (Crisp White)
+        const antGeo = new THREE.CylinderGeometry(0.046, 0.046, omniH, 16);
+        const antMesh = new THREE.Mesh(antGeo, antennaBodyMat);
+        antMesh.position.set(antX, antCenterY, antZ);
+        antMesh.castShadow = true;
+        towerGroup3D.add(antMesh);
+
+        // Metallic mounting clamp collar at tower top level
+        const collarGeo = new THREE.CylinderGeometry(0.062, 0.062, 0.28, 12);
+        const collarMesh = new THREE.Mesh(collarGeo, bracketMat);
+        collarMesh.position.set(antX, towerTopY, antZ);
+        towerGroup3D.add(collarMesh);
+
+        // Top & Bottom End Caps
+        const capGeo = new THREE.CylinderGeometry(0.048, 0.048, 0.06, 16);
+        const topCap = new THREE.Mesh(capGeo, bracketMat);
+        topCap.position.set(antX, antTopY + 0.03, antZ);
+        towerGroup3D.add(topCap);
+
+        const botCap = new THREE.Mesh(capGeo, bracketMat);
+        botCap.position.set(antX, antTopY - omniH - 0.03, antZ);
+        towerGroup3D.add(botCap);
+
+        // Coaxial feeder cable downward curve
+        const cableGeo = new THREE.CylinderGeometry(0.012, 0.012, 1.4, 6);
+        const cableMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
+        const cableMesh = new THREE.Mesh(cableGeo, cableMat);
+        cableMesh.position.set(antX, antTopY - omniH - 0.7, antZ);
+        towerGroup3D.add(cableMesh);
+
+        // Floating 3D Badge above each Antenna
+        const deltaVal = -drop;
+        const deltaText = (deltaVal >= 0 ? '+' : '') + deltaVal.toFixed(2) + 'm';
+        const badgeLabel = `📡 ขา ${legKey}: ${deltaText}`;
+
+        let bgCol = '#475569', borderCol = '#CBD5E1', textCol = '#FFFFFF';
+        if (isRod) {
+          bgCol = '#0284C7';
+          borderCol = '#38BDF8';
+        } else if (isOpp) {
+          bgCol = '#0F172A';
+          borderCol = '#38BDF8';
+        }
+
+        const antBadge = createBadgeSprite(badgeLabel, bgCol, textCol, borderCol);
+        antBadge.position.set(antX, antTopY + 0.55, antZ);
+        towerGroup3D.add(antBadge);
+      });
+
+      scene3D.add(towerGroup3D);
+    }
+
+    // Camera preset controls with smooth easing
+    function set3DCameraPreset(preset) {
+      activeCamPreset3D = preset;
+
+      ['iso', 'top', 'side', 'apex'].forEach(p => {
+        const btn = document.getElementById('btn_cam_' + p);
+        if (btn) {
+          if (p === preset) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+      });
+
+      if (!camera3D) return;
+
+      const baseTarget = new THREE.Vector3(0, 7.5, 0);
+
+      if (preset === 'iso') {
+        animateCameraTo(new THREE.Vector3(16, 17, 18), baseTarget);
+      } else if (preset === 'top') {
+        animateCameraTo(new THREE.Vector3(0.01, 26, 0.01), baseTarget);
+      } else if (preset === 'side') {
+        animateCameraTo(new THREE.Vector3(26, 7.5, 0), baseTarget);
+      } else if (preset === 'apex') {
+        const rodPos = getRodLeg3DPos();
+        const rodH = parseFloat(document.getElementById('in_rod').value) || 6.5;
+        const apexTarget = new THREE.Vector3(rodPos.x, 10 + rodH - 1.2, rodPos.z);
+        const apexCam = new THREE.Vector3(rodPos.x + 5.5, apexTarget.y + 2.5, rodPos.z + 5.5);
+        animateCameraTo(apexCam, apexTarget);
+      }
+    }
+
+    function animateCameraTo(targetPos, targetLookAt, duration = 650) {
+      if (!camera3D) return;
+      if (camTweenId) cancelAnimationFrame(camTweenId);
+
+      const startPos = camera3D.position.clone();
+      const startTarget = (controls3D && controls3D.target) ? controls3D.target.clone() : new THREE.Vector3(0, 7.5, 0);
+      const startTime = performance.now();
+
+      function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1.0);
+        // Cubic ease-out
+        const ease = 1 - Math.pow(1 - progress, 3);
+
+        camera3D.position.lerpVectors(startPos, targetPos, ease);
+        if (controls3D) {
+          controls3D.target.lerpVectors(startTarget, targetLookAt, ease);
+        } else {
+          camera3D.lookAt(targetLookAt);
+        }
+
+        if (progress < 1.0) {
+          camTweenId = requestAnimationFrame(step);
+        } else {
+          camTweenId = null;
+        }
+      }
+      camTweenId = requestAnimationFrame(step);
+    }
+
+    function getRodLeg3DPos() {
+      const W = parseFloat(document.getElementById('in_width').value) || 1.2;
+      const hw = W / 2;
+      const map = {
+        'A': { x: -hw, z: -hw },
+        'B': { x:  hw, z: -hw },
+        'C': { x:  hw, z:  hw },
+        'D': { x: -hw, z:  hw }
+      };
+      return map[currentRodLeg] || map['A'];
+    }
+
+    function toggle3DProtectionCone() {
+      isConeVisible3D = !isConeVisible3D;
+      if (coneMesh3D) coneMesh3D.visible = isConeVisible3D;
+      if (coneWire3D) coneWire3D.visible = isConeVisible3D;
+
+      const btn = document.getElementById('btn_toggle_cone');
+      const lbl = document.getElementById('lbl_cone_status');
+      if (isConeVisible3D) {
+        if (btn) btn.classList.add('active');
+        if (lbl) lbl.innerText = 'ON';
+      } else {
+        if (btn) btn.classList.remove('active');
+        if (lbl) lbl.innerText = 'OFF';
+      }
+    }
+
+    function toggle3DAutoRotate() {
+      autoRotate3D = !autoRotate3D;
+      const btn = document.getElementById('btn_toggle_rotate');
+      const lbl = document.getElementById('lbl_rotate_status');
+      if (autoRotate3D) {
+        if (btn) btn.classList.add('active');
+        if (lbl) lbl.innerText = 'ON';
+      } else {
+        if (btn) btn.classList.remove('active');
+        if (lbl) lbl.innerText = 'OFF';
+      }
+    }
+
+    function reset3DCamera() {
+      set3DCameraPreset('iso');
+    }
+
+    function update3DHUD(rodLeg, angle, rodHeight) {
+      const hudRod = document.getElementById('hud_rod_leg');
+      const hudAngle = document.getElementById('hud_angle');
+      if (hudRod) hudRod.innerText = `ขา ${rodLeg} (${rodHeight.toFixed(2)} m)`;
+      if (hudAngle) hudAngle.innerText = `${angle}°`;
+
+      const hud2dRod = document.getElementById('hud_2d_rod_leg');
+      const hud2dAngle = document.getElementById('hud_2d_angle');
+      const hud2dOpp = document.getElementById('hud_2d_opp_leg');
+      if (hud2dRod) hud2dRod.innerText = `ขา ${rodLeg} (${rodHeight.toFixed(2)} m)`;
+      if (hud2dAngle) hud2dAngle.innerText = `มุมจับยึด: ${angle}°`;
+      if (hud2dOpp) hud2dOpp.innerText = `ขา ${opposites[rodLeg]}`;
+
+      // Update 2D toolbar pole buttons
+      ['A', 'B', 'C', 'D'].forEach(l => {
+        const btn2d = document.getElementById('btn_2d_pole_' + l.toLowerCase());
+        if (btn2d) {
+          if (l === rodLeg) btn2d.classList.add('active');
+          else btn2d.classList.remove('active');
+        }
+      });
+    }
+
+    function update3DElevationGauges(towerH, rod, drops, heights) {
+      const lblTower = document.getElementById('gauge_tower_top_label');
+      if (lblTower) lblTower.innerText = `ยอดเสา: ${towerH.toFixed(2)} m`;
+
+      const valRod = document.getElementById('gauge_val_rod');
+      if (valRod) valRod.innerText = `${(towerH + rod).toFixed(2)} m`;
+
+      ['a', 'b', 'c', 'd'].forEach(k => {
+        const legUpper = k.toUpperCase();
+        const h = heights[legUpper] !== undefined ? heights[legUpper] : towerH;
+        const drop = drops[legUpper] !== undefined ? drops[legUpper] : 0;
+
+        const valEl = document.getElementById('gauge_val_' + k);
+        const barEl = document.getElementById('gauge_bar_' + k);
+        const badgeEl = document.getElementById('gauge_badge_' + k);
+
+        if (valEl) valEl.innerText = `${h.toFixed(2)} m`;
+
+        if (badgeEl) {
+          const delta = -drop;
+          const sign = delta >= 0 ? '+' : '';
+          badgeEl.innerText = `${sign}${delta.toFixed(2)} m`;
+          if (delta >= 0) {
+            badgeEl.className = "text-[10px] font-bold mono text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200";
+          } else {
+            badgeEl.className = "text-[10px] font-bold mono text-slate-900 bg-slate-200 px-2 py-0.5 rounded-md border border-slate-300";
+          }
+        }
+
+        if (barEl) {
+          const minH = towerH - 2.5;
+          const maxH = towerH + rod;
+          const pct = Math.max(30, Math.min(95, ((h - minH) / (maxH - minH)) * 100));
+          barEl.style.height = `${pct.toFixed(0)}%`;
+
+          if (drop <= 0) {
+            barEl.className = "w-full bg-gradient-to-t from-slate-700 to-sky-500 rounded-md transition-all duration-500 shadow-md";
+          } else {
+            barEl.className = "w-full bg-gradient-to-t from-slate-900 to-slate-600 rounded-md transition-all duration-500 shadow-md";
+          }
+        }
+      });
     }
 
     function selectRodPole(leg) {
@@ -1049,15 +1893,15 @@
           if (l === currentRodLeg) {
             circle.setAttribute('fill', '#0284C7'); // Sky Blue active
             circle.setAttribute('stroke', '#FFFFFF'); // White ring
-            circle.setAttribute('stroke-width', '4.5');
+            circle.setAttribute('stroke-width', '4');
           } else if (l === opposites[currentRodLeg]) {
             circle.setAttribute('fill', '#0F172A'); // Deep Black opposite
             circle.setAttribute('stroke', '#38BDF8'); // Sky Blue highlight
             circle.setAttribute('stroke-width', '3');
           } else {
-            circle.setAttribute('fill', '#475569'); // Silver/Slate adjacent
+            circle.setAttribute('fill', '#334155'); // Slate adjacent
             circle.setAttribute('stroke', '#CBD5E1'); // Silver ring
-            circle.setAttribute('stroke-width', '3');
+            circle.setAttribute('stroke-width', '2.5');
           }
         }
       });
@@ -1363,10 +2207,56 @@
           tblAction.className = "p-3 text-center font-medium " + (adj_drop <= 0 ? "text-sky-600" : "text-slate-700");
         }
       });
+
+      // Construct drops and heights maps for 3D engine & Elevation Gauges
+      const drops = {};
+      const heights = {};
+      ['A', 'B', 'C', 'D'].forEach(leg => {
+        if (leg === currentRodLeg) {
+          drops[leg] = rod_drop;
+          heights[leg] = rod_final_height;
+        } else if (leg === opposites[currentRodLeg]) {
+          drops[leg] = opp_drop;
+          heights[leg] = opp_final_height;
+        } else {
+          drops[leg] = adj_drop;
+          heights[leg] = adj_final_height;
+        }
+      });
+
+      // Update 3D HUD Telemetry
+      update3DHUD(currentRodLeg, angle, rod);
+
+      // Update 3D Elevation Level Gauges
+      update3DElevationGauges(towerH, rod, drops, heights);
+
+      // Rebuild Procedural 3D Tower Lattice Model
+      build3DModel({
+        width: width,
+        rod: rod,
+        mounting: mounting,
+        omni: omni,
+        towerH: towerH,
+        angle: angle,
+        tanP: tanP,
+        currentRodLeg: currentRodLeg,
+        drops: drops,
+        heights: heights
+      });
     }
 
-    // Initialize on load
-    selectRodPole('A');
+    // Initialize 3D scene and default state on load
+    function initApp() {
+      init3DScene();
+      selectRodPole('A');
+      setDiagramView('interactive');
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      setTimeout(initApp, 50);
+    } else {
+      window.addEventListener('DOMContentLoaded', initApp);
+    }
   </script>
 </body>
 </html>
