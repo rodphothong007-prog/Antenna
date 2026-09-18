@@ -682,6 +682,9 @@
                 </button>
               </div>
               <div class="flex items-center gap-1.5 flex-wrap">
+                <button type="button" onclick="toggleAntennaOrientation()" id="btn_toggle_ant_dir" class="viewport-3d-btn active" title="กลับทิศทางสายอากาศ (ชี้ขึ้น/ชี้ลง)">
+                  🔄 สายอากาศ: <span id="lbl_ant_dir">ชี้ขึ้น ⬆️</span>
+                </button>
                 <button type="button" onclick="toggle3DProtectionCone()" id="btn_toggle_cone" class="viewport-3d-btn active" title="เปิด/ปิด กรวยมุมป้องกันฟ้าผ่า 3D">
                   🛡️ กรวยป้องกัน: <span id="lbl_cone_status">ON</span>
                 </button>
@@ -1175,6 +1178,7 @@
     let coneWire3D = null;
     let autoRotate3D = true;
     let isConeVisible3D = true;
+    let antennaOrientationUp = true;
     let activeCamPreset3D = 'iso';
     let camTweenId = null;
 
@@ -1646,10 +1650,20 @@
         towerGroup3D.add(createCylinderBetweenPoints(pBraceLow, pAnt, 0.022, steelBraceMat));
 
         // Antenna Vertical Elevation:
-        // Top of antenna is at: towerTopY - drop
         const drop = p.drops[legKey] !== undefined ? p.drops[legKey] : 0;
-        const antTopY = towerTopY - drop;
-        const antCenterY = antTopY - (omniH / 2);
+        
+        let antBaseY, antTopY, antCenterY;
+        if (antennaOrientationUp) {
+          // Antennas stand vertically UPWARDS (ชี้ขึ้นฟ้า) into the protection cone
+          antBaseY = towerTopY - drop;
+          antTopY = antBaseY + omniH;
+          antCenterY = antBaseY + (omniH / 2);
+        } else {
+          // Inverted / hanging downwards
+          antTopY = towerTopY - drop;
+          antBaseY = antTopY - omniH;
+          antCenterY = antTopY - (omniH / 2);
+        }
 
         // Antenna Radome Cylinder (Crisp White)
         const antGeo = new THREE.CylinderGeometry(0.046, 0.046, omniH, 16);
@@ -1658,27 +1672,35 @@
         antMesh.castShadow = true;
         towerGroup3D.add(antMesh);
 
-        // Metallic mounting clamp collar at tower top level
-        const collarGeo = new THREE.CylinderGeometry(0.062, 0.062, 0.28, 12);
+        // Metallic mounting clamp collar at cantilever arm level
+        const collarGeo = new THREE.CylinderGeometry(0.064, 0.064, 0.26, 12);
         const collarMesh = new THREE.Mesh(collarGeo, bracketMat);
         collarMesh.position.set(antX, towerTopY, antZ);
         towerGroup3D.add(collarMesh);
 
+        // Vertical mounting support pipe from cantilever arm level to antenna base (if offset)
+        if (Math.abs(antBaseY - towerTopY) > 0.03) {
+          const pArm = new THREE.Vector3(antX, towerTopY, antZ);
+          const pBase = new THREE.Vector3(antX, antBaseY, antZ);
+          towerGroup3D.add(createCylinderBetweenPoints(pArm, pBase, 0.036, steelBraceMat));
+        }
+
         // Top & Bottom End Caps
-        const capGeo = new THREE.CylinderGeometry(0.048, 0.048, 0.06, 16);
+        const capGeo = new THREE.CylinderGeometry(0.034, 0.048, 0.1, 16);
         const topCap = new THREE.Mesh(capGeo, bracketMat);
-        topCap.position.set(antX, antTopY + 0.03, antZ);
+        topCap.position.set(antX, antTopY + 0.05, antZ);
         towerGroup3D.add(topCap);
 
-        const botCap = new THREE.Mesh(capGeo, bracketMat);
-        botCap.position.set(antX, antTopY - omniH - 0.03, antZ);
+        const botCapGeo = new THREE.CylinderGeometry(0.052, 0.052, 0.08, 16);
+        const botCap = new THREE.Mesh(botCapGeo, bracketMat);
+        botCap.position.set(antX, antBaseY - 0.04, antZ);
         towerGroup3D.add(botCap);
 
-        // Coaxial feeder cable downward curve
-        const cableGeo = new THREE.CylinderGeometry(0.012, 0.012, 1.4, 6);
+        // Coaxial feeder cable downward curve from antenna base
+        const cableGeo = new THREE.CylinderGeometry(0.012, 0.012, 1.2, 6);
         const cableMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
         const cableMesh = new THREE.Mesh(cableGeo, cableMat);
-        cableMesh.position.set(antX, antTopY - omniH - 0.7, antZ);
+        cableMesh.position.set(antX, antBaseY - 0.6, antZ);
         towerGroup3D.add(cableMesh);
 
         // Floating 3D Badge above each Antenna
@@ -1696,7 +1718,8 @@
         }
 
         const antBadge = createBadgeSprite(badgeLabel, bgCol, textCol, borderCol);
-        antBadge.position.set(antX, antTopY + 0.55, antZ);
+        const badgeY = antennaOrientationUp ? (antTopY + 0.65) : (antTopY + 0.55);
+        antBadge.position.set(antX, badgeY, antZ);
         towerGroup3D.add(antBadge);
       });
 
@@ -1717,14 +1740,14 @@
 
       if (!camera3D) return;
 
-      const baseTarget = new THREE.Vector3(0, 7.5, 0);
+      const baseTarget = new THREE.Vector3(0, 11.0, 0);
 
       if (preset === 'iso') {
-        animateCameraTo(new THREE.Vector3(16, 17, 18), baseTarget);
+        animateCameraTo(new THREE.Vector3(18, 17, 20), baseTarget);
       } else if (preset === 'top') {
-        animateCameraTo(new THREE.Vector3(0.01, 26, 0.01), baseTarget);
+        animateCameraTo(new THREE.Vector3(0.01, 28, 0.01), baseTarget);
       } else if (preset === 'side') {
-        animateCameraTo(new THREE.Vector3(26, 7.5, 0), baseTarget);
+        animateCameraTo(new THREE.Vector3(26, 12.0, 0), new THREE.Vector3(0, 12.0, 0));
       } else if (preset === 'apex') {
         const rodPos = getRodLeg3DPos();
         const rodH = parseFloat(document.getElementById('in_rod').value) || 6.5;
@@ -1774,6 +1797,18 @@
         'D': { x: -hw, z:  hw }
       };
       return map[currentRodLeg] || map['A'];
+    }
+
+    function toggleAntennaOrientation() {
+      antennaOrientationUp = !antennaOrientationUp;
+      const lbl = document.getElementById('lbl_ant_dir');
+      const btn = document.getElementById('btn_toggle_ant_dir');
+      if (lbl) lbl.innerText = antennaOrientationUp ? 'ชี้ขึ้น ⬆️' : 'ชี้ลง ⬇️';
+      if (btn) {
+        if (antennaOrientationUp) btn.classList.add('active');
+        else btn.classList.remove('active');
+      }
+      calculateAll();
     }
 
     function toggle3DProtectionCone() {
