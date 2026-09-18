@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent tou - Dashboard วิเคราะห์สูตรคำนวณระดับความสูงติดตั้ง Antenna</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <!-- Three.js 3D WebGL Engine & OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { 
+      font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      background-color: #F8FAFC;
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    
+    /* 3D Dashboard Depth & Elevation */
+    .glass-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.07), 0 4px 8px -2px rgba(15, 23, 42, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+    }
+    .glass-card-3d:hover {
+      transform: translateY(-3px) scale(1.002);
+      box-shadow: 0 24px 40px -10px rgba(2, 132, 199, 0.14), 0 8px 16px -4px rgba(15, 23, 42, 0.05);
+    }
+    .custom-shadow {
+      box-shadow: 0 18px 36px -10px rgba(15, 23, 42, 0.08), 0 6px 12px -3px rgba(15, 23, 42, 0.04);
+    }
+    
+    /* 3D Tactile Buttons */
+    .btn-3d {
+      background: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%);
+      border: 1px solid #CBD5E1;
+      box-shadow: 0 3px 5px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      transition: all 0.15s ease;
+    }
+    .btn-3d:hover {
+      background: linear-gradient(180deg, #FFFFFF 0%, #E2E8F0 100%);
+      border-color: #94A3B8;
+      transform: translateY(-1px);
+      box-shadow: 0 5px 10px rgba(15, 23, 42, 0.12);
+    }
+    .btn-3d:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.15);
+    }
+    .btn-3d-active {
+      background: linear-gradient(180deg, #0284C7 0%, #0369A1 100%) !important;
+      border-color: #075985 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+    }
+
+    /* 3D Canvas Viewport */
+    .viewport-3d-container {
+      position: relative;
+      width: 100%;
+      height: 490px;
+      background: radial-gradient(circle at 50% 25%, #1E293B 0%, #0F172A 65%, #020617 100%);
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1.5px solid #334155;
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.7), 0 20px 35px -10px rgba(15, 23, 42, 0.35);
+    }
+    .viewport-3d-toolbar {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+      z-index: 20;
+    }
+    .viewport-3d-toolbar > * {
+      pointer-events: auto;
+    }
+    .viewport-3d-badge {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #E2E8F0;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .viewport-3d-btn {
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: #F1F5F9;
+      padding: 5px 11px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .viewport-3d-btn:hover {
+      background: rgba(2, 132, 199, 0.85);
+      border-color: #38BDF8;
+      color: #FFFFFF;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+      transform: translateY(-1px);
+    }
+    .viewport-3d-btn.active {
+      background: #0284C7;
+      border-color: #38BDF8;
+      color: #FFFFFF;
+      box-shadow: 0 0 12px rgba(2, 132, 199, 0.6);
+    }
+
+    .input-theme, .input-yellow {
+      background-color: #FFFFFF;
+      border: 1.5px solid #CBD5E1;
+      color: #0F172A;
+      box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.03);
+    }
+    .input-theme:focus, .input-yellow:focus {
+      background-color: #F0F9FF;
+      border-color: #0284C7;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25), inset 0 1px 2px rgba(2, 132, 199, 0.05);
+    }
+    .leg-btn-active {
+      background: linear-gradient(180deg, #0284C7 0%, #0369A1 100%) !important;
+      border-color: #0284C7 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4), 0 0 0 2px #38BDF8, inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+    }
+    .svg-leg-node {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .svg-leg-node:hover {
+      transform: scale(1.12);
+      filter: drop-shadow(0 4px 8px rgba(15, 23, 42, 0.35));
+    }
+    .active-antenna-line {
+      stroke: #0284C7 !important;
+      stroke-width: 5 !important;
+      filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.6));
+    }
+    .active-antenna-text {
+      fill: #0369A1 !important;
+      font-weight: 800 !important;
+    }
+    
+    /* 3D Height Comparison Bar Styles */
+    .bar-3d-container {
+      perspective: 800px;
+    }
+    .bar-3d-pillar {
+      transform: rotateX(8deg);
+      box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+  </style>
+</head>
+<body class="bg-slate-100/90 text-slate-800 antialiased min-h-screen p-4 md:p-8">
+
+  <!-- Header Section -->
+  <div class="max-w-7xl mx-auto mb-8">
+    <div class="glass-card rounded-2xl p-6 md:p-8 custom-shadow border-l-8 border-sky-600">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950 text-sky-400 border border-slate-800 text-xs font-semibold uppercase tracking-wider mb-2">
+            <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+            Agent: tou
+          </div>
+          <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+            Dashboard วิเคราะห์สูตรคำนวณระดับความสูงการติดตั้ง Antenna (ANT 90° / 135° / 180°)
+          </h1>
+          <p class="text-slate-600 mt-1 text-sm md:text-base">
+            วิเคราะห์ขั้นตอนตามหลักวิศวกรรมจากไฟล์ <span class="font-semibold text-slate-900 underline">สูตรคำนวน ANT_90 องศา.xlsx</span> (Sheet: <span class="mono text-sky-700 font-semibold">90องศา</span>)
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 text-xs font-medium border border-sky-200">
+            ⚡ สัญลักษณ์ล่อฟ้าขยับตามขาที่เลือก
+          </span>
+          <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-slate-100 text-slate-800 text-xs font-medium border border-slate-300">
+            📐 Drop-down มุม 90°, 135°, 180°
+          </span>
+          <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition border border-slate-700 flex items-center gap-1 shadow-sm">
+            🖨️ พิมพ์รายงาน
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Left Column: Inputs & Formula Parameters (5 cols) -->
+    <div class="lg:col-span-5 space-y-6">
+      
+      <!-- Input Parameters Card -->
+      <div class="glass-card rounded-2xl p-6 custom-shadow border-t-4 border-sky-600">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-5">
+          <div class="flex items-center gap-2">
+            <div class="p-2 rounded-lg bg-sky-100 text-sky-700 font-bold">
+              📝
+            </div>
+            <div>
+              <h2 class="font-bold text-slate-800 text-lg">ช่องกรอกตัวแปร (Parameters)</h2>
+              <p class="text-xs text-slate-500">ปรับค่ามุมและตัวแปรเพื่อคำนวณใหม่ได้ทันที</p>
+            </div>
+          </div>
+          <button onclick="resetDefaults()" class="text-xs text-sky-600 hover:text-sky-800 font-semibold underline">
+            คืนค่าเริ่มต้น
+          </button>
+        </div>
+
+        <div class="space-y-4 text-sm">
+          
+          <!-- Dropdown: มุมขาจับยึดสายอากาศ (Mounting Angle: 90, 135, 180) -->
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-300">
+            <div class="flex justify-between items-center mb-1.5">
+              <label class="font-bold text-slate-900 flex items-center gap-1.5 text-xs sm:text-sm">
+                <span>📐 มุมขาจับยึดสายอากาศในไฟล์ Excel:</span>
+              </label>
+              <span class="text-xs font-mono font-bold text-sky-800 bg-sky-100 border border-sky-200 px-2 py-0.5 rounded-md" id="badge_angle_cos">
+                cos(90°) = 0
+              </span>
+            </div>
+            <div class="relative">
+              <select id="in_angle" onchange="calculateAll()" 
+                      class="w-full rounded-xl px-4 py-2.5 font-bold text-slate-900 bg-white border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition shadow-sm cursor-pointer">
+                <option value="90">90 องศา (A1, B1, D1) — มุมฉาก cos A = 0 [ค่าในไฟล์]</option>
+                <option value="135">135 องศา (A2, B2, C1, D2) — มุมป้าน cos A = -0.7071 [ทแยงมุม]</option>
+                <option value="180">180 องศา (A3, B3, C2, D3) — มุมตรง cos A = -1.000 [ขนานหน้าเสา]</option>
+              </select>
+            </div>
+            <p class="text-[11px] text-slate-600 mt-1.5 font-medium">
+              * คำนวณตามกฎของโคไซน์: <span class="mono text-sky-700 font-semibold">c² = a² + b² - 2ab·cos(A)</span>
+            </p>
+          </div>
+
+          <!-- กำหนดตำแหน่งเสาที่มีล่อฟ้า (Select Pole A, B, C, D) -->
+          <div class="bg-sky-50/50 p-3.5 rounded-xl border border-sky-200">
+            <div class="flex justify-between items-center mb-2">
+              <label class="font-bold text-slate-900 flex items-center gap-1.5 text-xs sm:text-sm">
+                <span>⚡ เลือกขาเสาที่มีแท่งล่อฟ้า (ล่อฟ้าขยับตาม):</span>
+              </label>
+              <span class="text-xs font-mono font-bold text-white bg-sky-600 px-2.5 py-0.5 rounded-md shadow-sm" id="badge_current_rod">
+                ขา A
+              </span>
+            </div>
+            <div class="grid grid-cols-4 gap-2">
+              <button type="button" onclick="selectRodPole('A')" id="btn_rod_a" 
+                      class="leg-btn-active py-2.5 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center shadow-sm">
+                <span>ขา A ⚡</span>
+                <span class="text-[10px] font-normal opacity-90">(เดิมในไฟล์)</span>
+              </button>
+              <button type="button" onclick="selectRodPole('B')" id="btn_rod_b" 
+                      class="bg-white border-slate-300 text-slate-700 hover:bg-slate-50 py-2.5 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center">
+                <span>ขา B</span>
+                <span class="text-[10px] font-normal opacity-70">หน้าขวา</span>
+              </button>
+              <button type="button" onclick="selectRodPole('C')" id="btn_rod_c" 
+                      class="bg-white border-slate-300 text-slate-700 hover:bg-slate-50 py-2.5 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center">
+                <span>ขา C</span>
+                <span class="text-[10px] font-normal opacity-70">หลังขวา</span>
+              </button>
+              <button type="button" onclick="selectRodPole('D')" id="btn_rod_d" 
+                      class="bg-white border-slate-300 text-slate-700 hover:bg-slate-50 py-2.5 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center">
+                <span>ขา D</span>
+                <span class="text-[10px] font-normal opacity-70">หลังซ้าย</span>
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-600 mt-2 font-medium">
+              * สัญลักษณ์สายฟ้าสีฟ้าบนรูปไดอะแกรมจะวิ่งไปหาขาที่ท่านเลือกทันที
+            </p>
+          </div>
+
+          <!-- 1. ความยาวล่อฟ้า -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-medium text-slate-700 flex items-center gap-1">
+                <span>1. ความยาวล่อฟ้า</span>
+                <span class="text-xs text-slate-400 mono">(เซลล์ C21)</span>
+              </label>
+              <span class="text-xs text-slate-500">เติมตัวเลขความยาวล่อฟ้า</span>
+            </div>
+            <div class="relative">
+              <input type="number" step="0.01" id="in_rod" value="6.50" oninput="calculateAll()" 
+                     class="input-yellow w-full rounded-xl px-4 py-2.5 font-semibold text-slate-900 border text-base transition">
+              <span class="absolute right-4 top-2.5 text-slate-500 font-medium">เมตร (m)</span>
+            </div>
+          </div>
+
+          <!-- 2. ความยาวเม้าติ้ง (a) -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-medium text-slate-700 flex items-center gap-1">
+                <span>2. ความยาวเม้าติ้ง <span class="mono text-sky-600 font-bold">(a)</span></span>
+                <span class="text-xs text-slate-400 mono">(เซลล์ C13, C23)</span>
+              </label>
+              <span class="text-xs text-slate-500">ความยาวเม้ายึด Omni</span>
+            </div>
+            <div class="relative">
+              <input type="number" step="0.01" id="in_mounting" value="1.50" oninput="calculateAll()" 
+                     class="input-yellow w-full rounded-xl px-4 py-2.5 font-semibold text-slate-900 border text-base transition">
+              <span class="absolute right-4 top-2.5 text-slate-500 font-medium">เมตร (m)</span>
+            </div>
+          </div>
+
+          <!-- 3. ระยะหน้ากว้างเสา (b) -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-medium text-slate-700 flex items-center gap-1">
+                <span>3. ระยะหน้ากว้างเสา <span class="mono text-sky-600 font-bold">(b)</span></span>
+                <span class="text-xs text-slate-400 mono">(เซลล์ C14)</span>
+              </label>
+              <span class="text-xs text-slate-500">ความกว้างหน้าเสา</span>
+            </div>
+            <div class="relative">
+              <input type="number" step="0.01" id="in_width" value="1.20" oninput="calculateAll()" 
+                     class="input-yellow w-full rounded-xl px-4 py-2.5 font-semibold text-slate-900 border text-base transition">
+              <span class="absolute right-4 top-2.5 text-slate-500 font-medium">เมตร (m)</span>
+            </div>
+          </div>
+
+          <!-- 4. ความยาวสายอากาศ Omni -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-medium text-slate-700 flex items-center gap-1">
+                <span>4. ความยาวสายอากาศ Omni</span>
+                <span class="text-xs text-slate-400 mono">(เซลล์ C24)</span>
+              </label>
+              <span class="text-xs text-slate-500">ความยาวสายอากาศตามการใช้งาน</span>
+            </div>
+            <div class="relative">
+              <input type="number" step="0.01" id="in_omni" value="4.15" oninput="calculateAll()" 
+                     class="input-yellow w-full rounded-xl px-4 py-2.5 font-semibold text-slate-900 border text-base transition">
+              <span class="absolute right-4 top-2.5 text-slate-500 font-medium">เมตร (m)</span>
+            </div>
+          </div>
+
+          <!-- 5. Dropdown: มุมป้องกัน TAN(P) -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-medium text-slate-700 flex items-center gap-1">
+                <span>5. ค่า tan (มุมป้องกัน) <span class="mono text-sky-600 font-bold">= TAN(P)</span></span>
+                <span class="text-xs text-slate-400 mono">(เซลล์ C25)</span>
+              </label>
+              <span class="text-xs text-slate-500">มุม 45°=1, มุม 30°=0.578</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <select id="in_tan_select" onchange="onTanSelectChange()" 
+                      class="w-full rounded-xl px-3 py-2.5 font-semibold text-slate-800 bg-white border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                <option value="1.000">มุม 45° (TAN = 1.000)</option>
+                <option value="0.578">มุม 30° (TAN = 0.578)</option>
+                <option value="custom">กำหนดเอง (Custom)...</option>
+              </select>
+              <input type="number" step="0.001" id="in_tan_p" value="1.000" oninput="calculateAll()" 
+                     class="input-yellow rounded-xl px-3 py-2 font-semibold text-slate-900 border text-sm text-center">
+            </div>
+          </div>
+
+          <!-- 6. ความสูงเสา -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="font-medium text-slate-700 flex items-center gap-1">
+                <span>6. ความสูงเสา <span class="mono text-sky-600 font-bold">(Tower Height)</span></span>
+                <span class="text-xs text-slate-400 mono">(เซลล์ C28)</span>
+              </label>
+              <span class="text-xs text-slate-500">ระดับความสูงยอดเสา</span>
+            </div>
+            <div class="relative">
+              <input type="number" step="0.1" id="in_tower_height" value="72.0" oninput="calculateAll()" 
+                     class="input-yellow w-full rounded-xl px-4 py-2.5 font-semibold text-slate-900 border text-base transition">
+              <span class="absolute right-4 top-2.5 text-slate-500 font-medium">เมตร (m)</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Geometry Step-by-Step Card -->
+      <div class="glass-card rounded-2xl p-6 custom-shadow border-t-4 border-slate-700">
+        <div class="flex items-center gap-2 pb-3 border-b border-slate-200 mb-4">
+          <div class="p-2 rounded-lg bg-slate-900 text-sky-400 font-bold">
+            📐
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-800 text-base">การคำนวณระยะห่างแท่งล่อฟ้า (กฎของโคไซน์)</h3>
+            <p class="text-xs text-slate-500">อิงตามแถว 8-16 ใน Excel ตามมุมที่เลือกใน Dropdown</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-100 rounded-xl p-3 text-xs mono text-slate-700 mb-4 border border-slate-200 leading-relaxed space-y-1">
+          <div>สูตร: <span class="text-sky-600 font-semibold">c² = a² + b² - 2ab·cos(A)</span></div>
+          <div>มุมที่เลือก: <span class="text-slate-800 font-semibold" id="math_lbl_angle">A = 90° &rarr; cos(90°) = 0</span></div>
+          <div class="flex items-center gap-2 pt-1 border-t border-slate-200">
+            <span>⚡ ล่อฟ้า: <strong class="text-sky-600 font-bold" id="math_lbl_rod">ขา A</strong></span>
+            <span class="text-slate-300">|</span>
+            <span>🎯 ตรงข้าม: <strong class="text-slate-900 font-bold" id="math_lbl_opp">ขา C</strong></span>
+          </div>
+          <div>ค่า C (ระยะล่อฟ้าถึงสายอากาศด้านข้าง): <span class="text-sky-700 font-bold" id="math_lbl_c">c = 1.9209 m</span></div>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between py-1.5 border-b border-slate-100">
+            <span class="text-slate-600">ค่า a² (a * a) [เซลล์ G8]:</span>
+            <span class="font-semibold mono text-slate-800" id="out_a2">2.25</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-100">
+            <span class="text-slate-600">ค่า b² (b * b) [เซลล์ G9]:</span>
+            <span class="font-semibold mono text-slate-800" id="out_b2">1.44</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-100">
+            <span class="text-slate-600">ส่วนที่ (1) a² + b² [เซลล์ J8]:</span>
+            <span class="font-semibold mono text-slate-800" id="out_sum_ab2">3.69</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-100">
+            <span class="text-slate-600">ส่วนที่ (2) 2 * a * b * cos(A) [เซลล์ G11]:</span>
+            <span class="font-semibold mono text-slate-800" id="out_cos_part">0.00</span>
+          </div>
+          <div class="flex justify-between py-1.5 border-b border-slate-100">
+            <span class="text-slate-600">ส่วนที่ (3) = (1) - (2) [เซลล์ G13]:</span>
+            <span class="font-semibold mono text-slate-800" id="out_c2">3.69</span>
+          </div>
+          <div class="flex justify-between py-2 bg-sky-50 px-3 rounded-lg border border-sky-200 text-sm">
+            <span class="font-bold text-sky-950">ระยะ C = √((3)) [เซลล์ G16 / C22]:</span>
+            <span class="font-bold mono text-sky-700" id="out_c_val">1.9209 m</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Diagram & Output Results (7 cols) -->
+    <div class="lg:col-span-7 space-y-6">
+
+      <!-- Diagram Card with Dynamic Interactive 3D Model & 2D SVG -->
+      <div class="glass-card glass-card-3d rounded-2xl p-6 custom-shadow border-t-4 border-slate-800">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 mb-4 gap-2">
+          <div class="flex items-center gap-2">
+            <div class="p-2.5 rounded-xl bg-slate-900 text-sky-400 font-bold shadow-md">
+              🧊
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-slate-800 text-base">โมเดลโครงสร้างเสา 3 มิติ (3D Interactive Tower)</h3>
+                <span id="badge_diagram_rod" class="text-xs font-mono font-bold text-white bg-sky-600 border border-sky-700 px-2 py-0.5 rounded-md shadow-sm">
+                  เสาขา A (ล่อฟ้า ⚡)
+                </span>
+              </div>
+              <p class="text-xs text-slate-500">หมุน 360° ซูมดูมุมจับยึดและกรวยป้องกันฟ้าผ่าได้แบบ Real-time</p>
+            </div>
+          </div>
+          <!-- Diagram View Switcher (3D / 2D / Static) -->
+          <div class="inline-flex rounded-xl border border-slate-300 p-1 bg-slate-100 text-xs shadow-inner">
+            <button type="button" onclick="setDiagramView('3d')" id="tab_view_3d"
+                    class="px-3 py-1.5 font-bold rounded-lg bg-slate-900 text-white shadow-sm transition flex items-center gap-1.5">
+              <span>🧊 โมเดล 3D</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
+            </button>
+            <button type="button" onclick="setDiagramView('interactive')" id="tab_view_interactive"
+                    class="px-3 py-1.5 font-medium rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1">
+              <span>📐 ผัง 2D Top View</span>
+            </button>
+            <button type="button" onclick="setDiagramView('static')" id="tab_view_static"
+                    class="px-3 py-1.5 font-medium rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1">
+              <span>🖼️ ภาพ Excel</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 0. Interactive 3D WebGL Canvas Container (DEFAULT ACTIVE) -->
+        <div id="diagram_3d_container" class="viewport-3d-container flex flex-col justify-center items-center relative">
+          <!-- 3D Viewport Controls Toolbar -->
+          <div class="viewport-3d-toolbar">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="viewport-3d-badge flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                <span>3D WebGL Engine</span>
+              </span>
+              <button type="button" onclick="set3DCameraPreset('iso')" id="btn_cam_iso" class="viewport-3d-btn active" title="มุมมอง 3 มิติรอบด้าน">
+                🎥 3D Orbit
+              </button>
+              <button type="button" onclick="set3DCameraPreset('top')" id="btn_cam_top" class="viewport-3d-btn" title="มุมมองก้มจากด้านบน">
+                🔝 Top View
+              </button>
+              <button type="button" onclick="set3DCameraPreset('side')" id="btn_cam_side" class="viewport-3d-btn" title="มุมมองระนาบด้านข้าง">
+                ↔️ Side View
+              </button>
+              <button type="button" onclick="set3DCameraPreset('apex')" id="btn_cam_apex" class="viewport-3d-btn" title="ซูมเจาะลึกยอดเสาและล่อฟ้า">
+                🗼 Apex Zoom
+              </button>
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button type="button" onclick="toggle3DProtectionCone()" id="btn_toggle_cone" class="viewport-3d-btn active" title="เปิด/ปิด กรวยมุมป้องกันฟ้าผ่า 3D">
+                🛡️ กรวยป้องกัน: <span id="lbl_cone_status">ON</span>
+              </button>
+              <button type="button" onclick="toggle3DAutoRotate()" id="btn_toggle_rotate" class="viewport-3d-btn active" title="เปิด/ปิด การหมุน 3D อัตโนมัติ">
+                🔄 หมุน 3D: <span id="lbl_rotate_status">ON</span>
+              </button>
+              <button type="button" onclick="reset3DCamera()" class="viewport-3d-btn" title="รีเซ็ตตำแหน่งกล้อง">
+                🔁 Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Canvas target for Three.js -->
+          <div id="three_canvas_container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+          <!-- 3D HUD Telemetry Overlay -->
+          <div class="absolute bottom-3 left-3 z-10 pointer-events-none hidden sm:block">
+            <div class="bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-slate-300 text-[11px] px-3 py-2 rounded-xl mono space-y-0.5 shadow-xl">
+              <div class="flex items-center gap-2">
+                <span class="text-sky-400 font-bold">⚡ เสาล่อฟ้า:</span>
+                <span id="hud_rod_leg" class="text-white font-semibold">ขา A (6.50 m)</span>
+                <span class="text-slate-600">|</span>
+                <span class="text-sky-400 font-bold">📐 มุมจับยึด:</span>
+                <span id="hud_angle" class="text-white font-semibold">90°</span>
+              </div>
+              <div class="text-[10px] text-slate-400 pt-0.5 border-t border-slate-800">
+                🖱️ คลิกลากเมาส์เพื่อหมุน 360° | เลื่อน Scroll ซูมเข้า-ออก | คลิกขวาลากเพื่อแพน
+              </div>
+            </div>
+          </div>
+
+          <!-- 3D Legend Overlay -->
+          <div class="absolute bottom-3 right-3 z-10 pointer-events-none">
+            <div class="bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-[11px] px-3 py-1.5 rounded-xl text-slate-300 flex items-center gap-2.5 shadow-xl">
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 shadow-sm"></span> ⚡ ล่อฟ้า</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-white border border-slate-400"></span> 📡 Omni</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500/40 border border-sky-400"></span> 🛡️ กรวยป้องกัน</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1. Interactive SVG Canvas (Lightning bolt actively moves to selected leg) -->
+        <div id="diagram_interactive_container" class="rounded-2xl overflow-hidden border border-slate-200 bg-white p-2 shadow-inner relative justify-center items-center hidden">
+          <svg viewBox="0 0 900 630" class="w-full h-auto max-h-[440px] select-none">
+            <defs>
+              <filter id="glow-filter" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+              <filter id="shadow-filter" x="-10%" y="-10%" width="130%" height="130%">
+                <feDropShadow dx="2" dy="4" stdDeviation="3" flood-opacity="0.25"/>
+              </filter>
+              <linearGradient id="silver-tower-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#F8FAFC" />
+                <stop offset="50%" stop-color="#E2E8F0" />
+                <stop offset="100%" stop-color="#CBD5E1" />
+              </linearGradient>
+            </defs>
+
+            <!-- Center Square Tower Face with metallic silver finish -->
+            <polygon points="320,180 580,180 580,440 320,440" 
+                     fill="url(#silver-tower-grad)" stroke="#0F172A" stroke-width="3" />
+            
+            <!-- Diagonal Line A to C -->
+            <line x1="320" y1="180" x2="580" y2="440" 
+                  stroke="#475569" stroke-width="3" stroke-dasharray="8,5" />
+
+            <!-- Labels on Tower -->
+            <text x="450" y="160" text-anchor="middle" font-size="15" font-weight="600" fill="#0F172A">ความกว้างหน้าเสา</text>
+            <text x="465" y="295" text-anchor="middle" font-size="15" font-weight="600" fill="#0F172A">ความกว้างด้านแยงมุม</text>
+
+            <!-- ================= Antenna Lines ================= -->
+            <!-- Leg A Antennas -->
+            <line id="line_a1" x1="320" y1="180" x2="320" y2="70" stroke="#64748B" stroke-width="3" />
+            <text id="txt_a1" x="320" y="45" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">A1<tspan x="320" dy="18" font-size="13">90 องศา</tspan></text>
+
+            <line id="line_a2" x1="320" y1="180" x2="215" y2="90" stroke="#64748B" stroke-width="3" />
+            <text id="txt_a2" x="190" y="70" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">A2<tspan x="190" dy="18" font-size="13">135 องศา</tspan></text>
+
+            <line id="line_a3" x1="320" y1="180" x2="180" y2="180" stroke="#64748B" stroke-width="3" />
+            <text id="txt_a3" x="140" y="170" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">A3<tspan x="140" dy="18" font-size="13">180 องศา</tspan></text>
+
+            <!-- Leg B Antennas -->
+            <line id="line_b1" x1="580" y1="180" x2="580" y2="70" stroke="#64748B" stroke-width="3" />
+            <text id="txt_b1" x="580" y="45" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">B1<tspan x="580" dy="18" font-size="13">90 องศา</tspan></text>
+
+            <line id="line_b2" x1="580" y1="180" x2="685" y2="90" stroke="#64748B" stroke-width="3" />
+            <text id="txt_b2" x="715" y="70" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">B2<tspan x="715" dy="18" font-size="13">135 องศา</tspan></text>
+
+            <line id="line_b3" x1="580" y1="180" x2="720" y2="180" stroke="#64748B" stroke-width="3" />
+            <text id="txt_b3" x="760" y="170" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">B3<tspan x="760" dy="18" font-size="13">180 องศา</tspan></text>
+
+            <!-- Leg C Antennas -->
+            <line id="line_c1" x1="580" y1="440" x2="720" y2="440" stroke="#64748B" stroke-width="3" />
+            <text id="txt_c1" x="760" y="430" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">C1<tspan x="760" dy="18" font-size="13">135 องศา</tspan></text>
+
+            <line id="line_c2" x1="580" y1="440" x2="685" y2="530" stroke="#64748B" stroke-width="3" />
+            <text id="txt_c2" x="715" y="550" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">C2<tspan x="715" dy="18" font-size="13">180 องศา</tspan></text>
+
+            <line id="line_c3" x1="580" y1="440" x2="580" y2="550" stroke="#64748B" stroke-width="3" />
+            <text id="txt_c3" x="580" y="580" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">C3<tspan x="580" dy="18" font-size="13">135 องศา</tspan></text>
+
+            <!-- Leg D Antennas -->
+            <line id="line_d1" x1="320" y1="440" x2="180" y2="440" stroke="#64748B" stroke-width="3" />
+            <text id="txt_d1" x="140" y="430" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">D1<tspan x="140" dy="18" font-size="13">90 องศา</tspan></text>
+
+            <line id="line_d2" x1="320" y1="440" x2="215" y2="530" stroke="#64748B" stroke-width="3" />
+            <text id="txt_d2" x="190" y="550" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">D2<tspan x="190" dy="18" font-size="13">135 องศา</tspan></text>
+
+            <line id="line_d3" x1="320" y1="440" x2="320" y2="550" stroke="#64748B" stroke-width="3" />
+            <text id="txt_d3" x="320" y="580" text-anchor="middle" font-size="14" font-weight="600" fill="#0F172A">D3<tspan x="320" dy="18" font-size="13">180 องศา</tspan></text>
+
+            <!-- ================= DYNAMIC BLUE/SILVER LIGHTNING BOLT ================= -->
+            <g id="svg_dynamic_lightning" transform="translate(230, 130)" style="transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);">
+              <!-- Electric Sky Blue & Silver Lightning Shape -->
+              <polygon points="0,35 45,10 32,32 68,26 18,80 30,45 0,55" 
+                       fill="#0284C7" stroke="#0F172A" stroke-width="2.5" filter="url(#shadow-filter)" />
+              <polygon points="5,38 42,15 32,33 62,28 22,72 30,46 5,53" 
+                       fill="#38BDF8" opacity="0.85" />
+              <polygon points="10,40 38,20 30,34 52,30 25,64 28,47 10,50" 
+                       fill="#FFFFFF" opacity="0.8" />
+              <!-- Indicator Badge -->
+              <rect x="-15" y="-18" width="85" height="22" rx="6" fill="#0F172A" stroke="#38BDF8" stroke-width="1.5" opacity="0.95" />
+              <text x="27" y="-3" text-anchor="middle" font-size="11" font-weight="700" fill="#38BDF8">⚡ ล่อฟ้า</text>
+            </g>
+
+            <!-- ================= 4 Tower Leg Nodes (Clickable) ================= -->
+            <!-- Leg A Node -->
+            <g class="svg-leg-node" onclick="selectRodPole('A')" transform="translate(320, 180)">
+              <circle id="svg_circle_a" r="26" fill="#0284C7" stroke="#FFFFFF" stroke-width="4.5" filter="url(#shadow-filter)" />
+              <text y="6" text-anchor="middle" font-size="18" font-weight="800" fill="#FFFFFF">A</text>
+            </g>
+
+            <!-- Leg B Node -->
+            <g class="svg-leg-node" onclick="selectRodPole('B')" transform="translate(580, 180)">
+              <circle id="svg_circle_b" r="26" fill="#475569" stroke="#CBD5E1" stroke-width="3" filter="url(#shadow-filter)" />
+              <text y="6" text-anchor="middle" font-size="18" font-weight="800" fill="#FFFFFF">B</text>
+            </g>
+
+            <!-- Leg C Node -->
+            <g class="svg-leg-node" onclick="selectRodPole('C')" transform="translate(580, 440)">
+              <circle id="svg_circle_c" r="26" fill="#0F172A" stroke="#38BDF8" stroke-width="3" filter="url(#shadow-filter)" />
+              <text y="6" text-anchor="middle" font-size="18" font-weight="800" fill="#FFFFFF">C</text>
+            </g>
+
+            <!-- Leg D Node -->
+            <g class="svg-leg-node" onclick="selectRodPole('D')" transform="translate(320, 440)">
+              <circle id="svg_circle_d" r="26" fill="#475569" stroke="#CBD5E1" stroke-width="3" filter="url(#shadow-filter)" />
+              <text y="6" text-anchor="middle" font-size="18" font-weight="800" fill="#FFFFFF">D</text>
+            </g>
+
+          </svg>
+        </div>
+
+        <!-- 2. Static Image Container (Excel Drawing Picture 62) -->
+        <div id="diagram_static_container" class="rounded-2xl overflow-hidden border border-slate-200 bg-white p-3 shadow-inner relative justify-center items-center hidden">
+          <img src="antenna_diagram.png" 
+               alt="Antenna Tower Diagram" 
+               class="max-h-80 w-auto object-contain">
+        </div>
+
+        <!-- Interactive Clickable Callouts for diagram -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 text-center text-xs">
+          
+          <button type="button" onclick="selectRodPole('A')" id="card_leg_a" 
+                  class="btn-3d p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between cursor-pointer leg-btn-active shadow-sm">
+            <div class="flex items-center justify-between w-full">
+              <span class="font-bold text-xs" id="lbl_title_a">ขา A ⚡</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-white/20 font-mono font-bold" id="badge_role_a">มีล่อฟ้า</span>
+            </div>
+            <div class="text-[11px] opacity-90 mt-1" id="lbl_sub_a">A1(90°), A2(135°), A3(180°)</div>
+          </button>
+
+          <button type="button" onclick="selectRodPole('B')" id="card_leg_b" 
+                  class="btn-3d p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 transition-all text-left flex flex-col justify-between cursor-pointer hover:shadow-md">
+            <div class="flex items-center justify-between w-full">
+              <span class="font-bold text-xs" id="lbl_title_b">ขา B</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-mono" id="badge_role_b">เสาด้านข้าง</span>
+            </div>
+            <div class="text-[11px] opacity-75 mt-1" id="lbl_sub_b">B1(90°), B2(135°), B3(180°)</div>
+          </button>
+
+          <button type="button" onclick="selectRodPole('C')" id="card_leg_c" 
+                  class="btn-3d p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white transition-all text-left flex flex-col justify-between cursor-pointer hover:shadow-md">
+            <div class="flex items-center justify-between w-full">
+              <span class="font-bold text-xs" id="lbl_title_c">ขา C</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-sky-400 border border-slate-700 font-mono font-semibold" id="badge_role_c">ตรงข้ามล่อฟ้า</span>
+            </div>
+            <div class="text-[11px] opacity-75 mt-1" id="lbl_sub_c">C1(135°), C2(180°), C3(135°)</div>
+          </button>
+
+          <button type="button" onclick="selectRodPole('D')" id="card_leg_d" 
+                  class="btn-3d p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 transition-all text-left flex flex-col justify-between cursor-pointer hover:shadow-md">
+            <div class="flex items-center justify-between w-full">
+              <span class="font-bold text-xs" id="lbl_title_d">ขา D</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-mono" id="badge_role_d">เสาด้านข้าง</span>
+            </div>
+            <div class="text-[11px] opacity-75 mt-1" id="lbl_sub_d">D1(90°), D2(135°), D3(180°)</div>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- 3D Elevation Level Gauge (กราฟเปรียบเทียบระดับความสูงแบบ 3 มิติ) -->
+      <div class="glass-card glass-card-3d rounded-2xl p-6 custom-shadow border-t-4 border-sky-600">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+          <div class="flex items-center gap-2">
+            <div class="p-2 rounded-xl bg-sky-100 text-sky-800 font-bold text-sm">
+              📊
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-800 text-sm md:text-base">กราฟเปรียบเทียบระดับความสูงติดตั้งจริง (3D Elevation Gauges)</h4>
+              <p class="text-xs text-slate-500">ระดับความสูงยอดเสาอ้างอิงเทียบกับตำแหน่งแท่งล่อฟ้าและสายอากาศทั้ง 4 ขา</p>
+            </div>
+          </div>
+          <span class="text-xs font-mono font-bold bg-slate-900 text-sky-400 px-2.5 py-1 rounded-lg border border-slate-800 shadow-sm" id="gauge_tower_top_label">
+            ยอดเสา: 72.00 m
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
+          
+          <!-- Column 0: Lightning Rod Tip -->
+          <div class="bg-gradient-to-b from-sky-50 to-white p-3 rounded-xl border border-sky-200 flex flex-col items-center justify-between text-center relative overflow-hidden shadow-sm">
+            <div class="text-[11px] font-bold text-sky-900 flex items-center gap-1">
+              <span>⚡ ปลายล่อฟ้า</span>
+            </div>
+            <div class="my-3 flex flex-col items-center">
+              <div class="text-lg font-black mono text-sky-600" id="gauge_val_rod">78.50 m</div>
+              <div class="w-12 h-20 bg-slate-100 rounded-lg relative overflow-hidden border border-sky-300 mt-1 flex items-end justify-center p-0.5">
+                <div class="w-full bg-gradient-to-t from-sky-600 to-sky-400 rounded-md transition-all duration-500 shadow-md" style="height: 95%;"></div>
+              </div>
+            </div>
+            <span class="text-[10px] font-semibold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-md border border-sky-200">
+              สูงสุด (+6.5m)
+            </span>
+          </div>
+
+          <!-- Column 1: Antenna A -->
+          <div class="bg-gradient-to-b from-slate-50 to-white p-3 rounded-xl border border-slate-200 flex flex-col items-center justify-between text-center relative shadow-sm" id="gauge_box_a">
+            <div class="text-[11px] font-bold text-slate-800">
+              📡 Omni ขา A
+            </div>
+            <div class="my-3 flex flex-col items-center">
+              <div class="text-lg font-black mono text-slate-900" id="gauge_val_a">72.85 m</div>
+              <div class="w-12 h-20 bg-slate-100 rounded-lg relative overflow-hidden border border-slate-300 mt-1 flex items-end justify-center p-0.5">
+                <div class="w-full bg-gradient-to-t from-slate-700 to-sky-500 rounded-md transition-all duration-500 shadow-md" id="gauge_bar_a" style="height: 82%;"></div>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold mono text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200" id="gauge_badge_a">
+              +0.85 m
+            </span>
+          </div>
+
+          <!-- Column 2: Antenna B -->
+          <div class="bg-gradient-to-b from-slate-50 to-white p-3 rounded-xl border border-slate-200 flex flex-col items-center justify-between text-center relative shadow-sm" id="gauge_box_b">
+            <div class="text-[11px] font-bold text-slate-800">
+              📡 Omni ขา B
+            </div>
+            <div class="my-3 flex flex-col items-center">
+              <div class="text-lg font-black mono text-slate-900" id="gauge_val_b">72.43 m</div>
+              <div class="w-12 h-20 bg-slate-100 rounded-lg relative overflow-hidden border border-slate-300 mt-1 flex items-end justify-center p-0.5">
+                <div class="w-full bg-gradient-to-t from-slate-600 to-slate-400 rounded-md transition-all duration-500 shadow-md" id="gauge_bar_b" style="height: 75%;"></div>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold mono text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200" id="gauge_badge_b">
+              +0.43 m
+            </span>
+          </div>
+
+          <!-- Column 3: Antenna C (Opposite) -->
+          <div class="bg-gradient-to-b from-slate-100 to-white p-3 rounded-xl border border-slate-300 flex flex-col items-center justify-between text-center relative shadow-sm" id="gauge_box_c">
+            <div class="text-[11px] font-bold text-slate-900">
+              🎯 Omni ขา C
+            </div>
+            <div class="my-3 flex flex-col items-center">
+              <div class="text-lg font-black mono text-slate-900" id="gauge_val_c">71.40 m</div>
+              <div class="w-12 h-20 bg-slate-100 rounded-lg relative overflow-hidden border border-slate-300 mt-1 flex items-end justify-center p-0.5">
+                <div class="w-full bg-gradient-to-t from-slate-900 to-slate-600 rounded-md transition-all duration-500 shadow-md" id="gauge_bar_c" style="height: 60%;"></div>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold mono text-slate-900 bg-slate-200 px-2 py-0.5 rounded-md border border-slate-300" id="gauge_badge_c">
+              -0.60 m
+            </span>
+          </div>
+
+          <!-- Column 4: Antenna D -->
+          <div class="bg-gradient-to-b from-slate-50 to-white p-3 rounded-xl border border-slate-200 flex flex-col items-center justify-between text-center relative shadow-sm" id="gauge_box_d">
+            <div class="text-[11px] font-bold text-slate-800">
+              📡 Omni ขา D
+            </div>
+            <div class="my-3 flex flex-col items-center">
+              <div class="text-lg font-black mono text-slate-900" id="gauge_val_d">72.43 m</div>
+              <div class="w-12 h-20 bg-slate-100 rounded-lg relative overflow-hidden border border-slate-300 mt-1 flex items-end justify-center p-0.5">
+                <div class="w-full bg-gradient-to-t from-slate-600 to-slate-400 rounded-md transition-all duration-500 shadow-md" id="gauge_bar_d" style="height: 75%;"></div>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold mono text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200" id="gauge_badge_d">
+              +0.43 m
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Dynamic Results Grid (4 Legs A, B, C, D) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Pole A Result Card -->
+        <div id="res_card_a" onclick="selectRodPole('A')" title="คลิกเพื่อเลือกล่อฟ้าที่ขา A" class="glass-card rounded-2xl p-5 custom-shadow border-t-4 border-sky-600 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md">
+          <div class="flex items-center justify-between mb-3">
+            <span id="res_badge_a" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-900 border border-sky-200">
+              ⚡ เสาต้นที่ A (เสาที่มีล่อฟ้า)
+            </span>
+            <span class="text-xs mono text-slate-400">ขา A</span>
+          </div>
+          <div class="space-y-3">
+            <div id="res_box_a" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
+              <div class="text-slate-500" id="res_formula_a">สูตร (A): [mounting + (Omni*TAN(P))] / TAN(P)</div>
+              <div class="font-semibold mono text-slate-800" id="res_step_a">= 5.65 m</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500 mb-1" id="res_drop_label_a">ระดับที่ต้องลดลงจากยอดเสา:</div>
+              <div class="text-2xl font-bold mono text-sky-600" id="res_drop_a">-0.85 m</div>
+              <div class="text-xs text-sky-700 font-medium mt-0.5" id="res_desc_a">
+                * เพิ่มระดับขึ้นได้ 0.85 m เหนือยอดเสา
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs">
+              <span class="text-slate-600 font-medium">ความสูงสายอากาศบนเสา:</span>
+              <span class="font-bold mono text-slate-950 text-sm" id="res_final_height_a">72.85 m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pole B Result Card -->
+        <div id="res_card_b" onclick="selectRodPole('B')" title="คลิกเพื่อเลือกล่อฟ้าที่ขา B" class="glass-card rounded-2xl p-5 custom-shadow border-t-4 border-slate-400 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md">
+          <div class="flex items-center justify-between mb-3">
+            <span id="res_badge_b" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300">
+              📡 เสาต้นที่ B
+            </span>
+            <span class="text-xs mono text-slate-400">ขา B</span>
+          </div>
+          <div class="space-y-3">
+            <div id="res_box_b" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
+              <div class="text-slate-500" id="res_dist_line_b">ระยะล่อฟ้าไปขา B (A) = ค่า C: <span class="mono font-semibold" id="res_dist_b">1.92 m</span></div>
+              <div class="text-slate-500" id="res_formula_b">สูตร (B): [(A) + (Omni*TAN(P))] / TAN(P)</div>
+              <div class="font-semibold mono text-slate-800" id="res_step_b">= 6.07 m</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500 mb-1" id="res_drop_label_b">ระดับที่ต้องลดลงจากยอดเสา:</div>
+              <div class="text-2xl font-bold mono text-sky-600" id="res_drop_b">-0.43 m</div>
+              <div class="text-xs text-sky-700 font-medium mt-0.5" id="res_desc_b">
+                * เพิ่มระดับขึ้นได้ 0.43 m เหนือยอดเสา
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs">
+              <span class="text-slate-600 font-medium">ความสูงสายอากาศบนเสา:</span>
+              <span class="font-bold mono text-slate-950 text-sm" id="res_final_height_b">72.43 m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pole C Result Card (Calculated with selected angle) -->
+        <div id="res_card_c" onclick="selectRodPole('C')" title="คลิกเพื่อเลือกล่อฟ้าที่ขา C" class="glass-card rounded-2xl p-5 custom-shadow border-t-4 border-slate-900 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md">
+          <div class="flex items-center justify-between mb-3">
+            <span id="res_badge_c" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-900 text-white border border-slate-700">
+              🎯 เสาต้นที่ C (ตรงข้ามล่อฟ้า)
+            </span>
+            <span class="text-xs mono text-slate-400">ขา C</span>
+          </div>
+          <div class="space-y-3">
+            <div id="res_box_c" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
+              <div class="text-slate-600" id="res_dist_line_c">ระยะล่อฟ้าไปขา C: <span class="mono font-semibold text-slate-900">${c_opp ? c_opp.toFixed(2) : "2.95"} m</span></div>
+              <div class="text-slate-500" id="res_formula_c">สูตร: [(ระยะ + (Omni*TAN(P))] / TAN(P)</div>
+              <div class="font-semibold mono text-slate-800" id="res_step_c">= 7.10 m</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500 mb-1" id="res_drop_label_c">ระดับที่ต้องลดลงจากยอดเสา:</div>
+              <div class="text-2xl font-bold mono text-slate-900" id="res_drop_c">+0.60 m</div>
+              <div class="text-xs text-slate-700 font-medium mt-0.5" id="res_desc_c">
+                * ค่าเป็นบวก: ต้องลดระยะลง 0.60 m จากยอดเสา
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs">
+              <span class="text-slate-600 font-medium">ความสูงสายอากาศบนเสา:</span>
+              <span class="font-bold mono text-slate-950 text-sm" id="res_final_height_c">71.40 m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pole D Result Card -->
+        <div id="res_card_d" onclick="selectRodPole('D')" title="คลิกเพื่อเลือกล่อฟ้าที่ขา D" class="glass-card rounded-2xl p-5 custom-shadow border-t-4 border-slate-400 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md">
+          <div class="flex items-center justify-between mb-3">
+            <span id="res_badge_d" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300">
+              📡 เสาต้นที่ D
+            </span>
+            <span class="text-xs mono text-slate-400">ขา D</span>
+          </div>
+          <div class="space-y-3">
+            <div id="res_box_d" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
+              <div class="text-slate-500" id="res_dist_line_d">ระยะล่อฟ้าไปขา D (A) = ค่า C: <span class="mono font-semibold" id="res_dist_d">1.92 m</span></div>
+              <div class="text-slate-500" id="res_formula_d">สูตร (B): [(A) + (Omni*TAN(P))] / TAN(P)</div>
+              <div class="font-semibold mono text-slate-800" id="res_step_d">= 6.07 m</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500 mb-1" id="res_drop_label_d">ระดับที่ต้องลดลงจากยอดเสา:</div>
+              <div class="text-2xl font-bold mono text-sky-600" id="res_drop_d">-0.43 m</div>
+              <div class="text-xs text-sky-700 font-medium mt-0.5" id="res_desc_d">
+                * เพิ่มระดับขึ้นได้ 0.43 m เหนือยอดเสา
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs">
+              <span class="text-slate-600 font-medium">ความสูงสายอากาศบนเสา:</span>
+              <span class="font-bold mono text-slate-950 text-sm" id="res_final_height_d">72.43 m</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Master Summary Table -->
+      <div class="glass-card rounded-2xl p-6 custom-shadow overflow-x-auto border-t-4 border-slate-900">
+        <h4 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2">
+          <span>📋</span> สรุประดับความสูงสายอากาศที่ติดบนเสาทั้ง 4 ขา (A, B, C, D)
+        </h4>
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-900 text-white border-b border-slate-800">
+              <th class="p-3 font-semibold rounded-l-lg">รายการคำนวณ</th>
+              <th class="p-3 font-semibold text-center" id="th_col_a">เสาต้นที่ A</th>
+              <th class="p-3 font-semibold text-center" id="th_col_b">เสาต้นที่ B</th>
+              <th class="p-3 font-semibold text-center" id="th_col_c">เสาต้นที่ C</th>
+              <th class="p-3 font-semibold text-center rounded-r-lg" id="th_col_d">เสาต้นที่ D</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            <tr>
+              <td class="p-3 font-medium text-slate-700">บทบาท / ตำแหน่ง</td>
+              <td class="p-3 text-center mono font-bold text-sky-600" id="tbl_role_a">มีล่อฟ้า ⚡</td>
+              <td class="p-3 text-center mono font-medium text-slate-600" id="tbl_role_b">เสาด้านข้าง</td>
+              <td class="p-3 text-center mono font-bold text-slate-900" id="tbl_role_c">ตรงข้ามล่อฟ้า</td>
+              <td class="p-3 text-center mono font-medium text-slate-600" id="tbl_role_d">เสาด้านข้าง</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-medium text-slate-700">ระยะห่างถึงล่อฟ้า (m)</td>
+              <td class="p-3 text-center mono font-semibold text-slate-800" id="tbl_dist_a">1.50 m (Mounting)</td>
+              <td class="p-3 text-center mono font-semibold text-slate-800" id="tbl_dist_b">1.92 m (ค่า C)</td>
+              <td class="p-3 text-center mono font-bold text-slate-900" id="tbl_dist_c">2.95 m (ค่า C ตรงข้าม)</td>
+              <td class="p-3 text-center mono font-semibold text-slate-800" id="tbl_dist_d">1.92 m (ค่า C)</td>
+            </tr>
+            <tr class="bg-sky-50/50">
+              <td class="p-3 font-semibold text-slate-800">ระดับที่ต้องลดลงจากยอดเสา (m)</td>
+              <td class="p-3 text-center mono font-bold text-sky-600" id="tbl_drop_a">-0.85 m</td>
+              <td class="p-3 text-center mono font-bold text-sky-600" id="tbl_drop_b">-0.43 m</td>
+              <td class="p-3 text-center mono font-bold text-slate-900" id="tbl_drop_c">+0.60 m</td>
+              <td class="p-3 text-center mono font-bold text-sky-600" id="tbl_drop_d">-0.43 m</td>
+            </tr>
+            <tr class="bg-slate-100/70">
+              <td class="p-3 font-semibold text-slate-900">ความสูงสายอากาศบนเสา (m)</td>
+              <td class="p-3 text-center mono font-bold text-slate-950 text-sm" id="tbl_height_a">72.85 m</td>
+              <td class="p-3 text-center mono font-bold text-slate-950 text-sm" id="tbl_height_b">72.43 m</td>
+              <td class="p-3 text-center mono font-bold text-slate-950 text-sm" id="tbl_height_c">71.40 m</td>
+              <td class="p-3 text-center mono font-bold text-slate-950 text-sm" id="tbl_height_d">72.43 m</td>
+            </tr>
+            <tr>
+              <td class="p-3 text-slate-600">การติดตั้งจริงเทียบกับยอดเสา</td>
+              <td class="p-3 text-center text-sky-600 font-medium" id="tbl_action_a">สูงกว่ายอดเสา +0.85 m</td>
+              <td class="p-3 text-center text-sky-600 font-medium" id="tbl_action_b">สูงกว่ายอดเสา +0.43 m</td>
+              <td class="p-3 text-center text-slate-800 font-medium" id="tbl_action_c">ต่ำกว่ายอดเสา -0.60 m</td>
+              <td class="p-3 text-center text-sky-600 font-medium" id="tbl_action_d">สูงกว่ายอดเสา +0.43 m</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="max-w-7xl mx-auto mt-10 pt-6 border-t border-slate-300 text-center text-xs text-slate-500">
+    <p>วิเคราะห์และประมวลผลโดย <strong class="text-slate-800">Agent tou</strong> | ระบบคำนวณตามสูตรทางคณิตศาสตร์จากไฟล์ Excel โดยตรงโดยไม่มีการคาดเดา</p>
+  </div>
+
+  <!-- Calculations JavaScript -->
+  <script>
+    let currentRodLeg = 'A';
+
+    const opposites = {
+      'A': 'C',
+      'B': 'D',
+      'C': 'A',
+      'D': 'B'
+    };
+
+    // Coordinates for placing the dynamic sky-blue lightning bolt at each leg
+    const lightningPositions = {
+      'A': { x: 230, y: 130, scaleX: 1, scaleY: 1 },
+      'B': { x: 670, y: 130, scaleX: -1, scaleY: 1 },
+      'C': { x: 670, y: 390, scaleX: -1, scaleY: 1 },
+      'D': { x: 230, y: 390, scaleX: 1, scaleY: 1 }
+    };
+
+    function setDiagramView(view) {
+      const btnInteractive = document.getElementById('tab_view_interactive');
+      const btnStatic = document.getElementById('tab_view_static');
+      const containerInteractive = document.getElementById('diagram_interactive_container');
+      const containerStatic = document.getElementById('diagram_static_container');
+
+      if (view === 'interactive') {
+        btnInteractive.className = "px-3 py-1 font-semibold rounded-md bg-slate-900 text-white shadow-sm transition";
+        btnStatic.className = "px-3 py-1 font-medium rounded-md text-slate-600 hover:text-slate-900 transition";
+        containerInteractive.classList.remove('hidden');
+        containerInteractive.classList.add('flex');
+        containerStatic.classList.add('hidden');
+        containerStatic.classList.remove('flex');
+      } else {
+        btnStatic.className = "px-3 py-1 font-semibold rounded-md bg-slate-900 text-white shadow-sm transition";
+        btnInteractive.className = "px-3 py-1 font-medium rounded-md text-slate-600 hover:text-slate-900 transition";
+        containerStatic.classList.remove('hidden');
+        containerStatic.classList.add('flex');
+        containerInteractive.classList.add('hidden');
+        containerInteractive.classList.remove('flex');
+      }
+    }
+
+    function selectRodPole(leg) {
+      currentRodLeg = leg;
+      
+      // Move SVG lightning bolt
+      const pos = lightningPositions[leg] || lightningPositions['A'];
+      const boltGroup = document.getElementById('svg_dynamic_lightning');
+      if (boltGroup) {
+        boltGroup.setAttribute('transform', `translate(${pos.x}, ${pos.y}) scale(${pos.scaleX}, ${pos.scaleY})`);
+      }
+
+      // Update Leg circles highlight in SVG (Blue, White, Silver, Black)
+      ['A', 'B', 'C', 'D'].forEach(l => {
+        const circle = document.getElementById('svg_circle_' + l.toLowerCase());
+        if (circle) {
+          if (l === currentRodLeg) {
+            circle.setAttribute('fill', '#0284C7'); // Sky Blue active
+            circle.setAttribute('stroke', '#FFFFFF'); // White ring
+            circle.setAttribute('stroke-width', '4.5');
+          } else if (l === opposites[currentRodLeg]) {
+            circle.setAttribute('fill', '#0F172A'); // Deep Black opposite
+            circle.setAttribute('stroke', '#38BDF8'); // Sky Blue highlight
+            circle.setAttribute('stroke-width', '3');
+          } else {
+            circle.setAttribute('fill', '#475569'); // Silver/Slate adjacent
+            circle.setAttribute('stroke', '#CBD5E1'); // Silver ring
+            circle.setAttribute('stroke-width', '3');
+          }
+        }
+      });
+
+      // Update buttons and cards
+      const legSubtitles = { 'A': 'หน้าซ้าย', 'B': 'หน้าขวา', 'C': 'หลังขวา', 'D': 'หลังซ้าย' };
+      ['A', 'B', 'C', 'D'].forEach(l => {
+        const btn = document.getElementById('btn_rod_' + l.toLowerCase());
+        const card = document.getElementById('card_leg_' + l.toLowerCase());
+        const lblTitle = document.getElementById('lbl_title_' + l.toLowerCase());
+        const badgeRole = document.getElementById('badge_role_' + l.toLowerCase());
+        const subText = l === 'A' ? '(เดิมในไฟล์)' : legSubtitles[l];
+        
+        if (l === currentRodLeg) {
+          if (btn) {
+            btn.className = "leg-btn-active py-2.5 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center shadow-sm";
+            btn.innerHTML = `<span>ขา ${l} ⚡</span><span class="text-[10px] font-normal opacity-90">${subText}</span>`;
+          }
+          if (card) {
+            card.className = "p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between cursor-pointer leg-btn-active shadow-sm";
+          }
+          if (lblTitle) lblTitle.innerHTML = `ขา ${l} ⚡`;
+          if (badgeRole) {
+            badgeRole.innerText = "มีล่อฟ้า";
+            badgeRole.className = "text-[10px] px-1.5 py-0.5 rounded bg-white/20 text-white font-mono font-bold";
+          }
+        } else if (l === opposites[currentRodLeg]) {
+          if (btn) {
+            btn.className = "bg-white border-slate-300 text-slate-700 hover:bg-slate-50 py-2.5 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center";
+            btn.innerHTML = `<span>ขา ${l}</span><span class="text-[10px] font-normal opacity-70">${subText}</span>`;
+          }
+          if (card) {
+            card.className = "p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white transition-all text-left flex flex-col justify-between cursor-pointer hover:shadow-md";
+          }
+          if (lblTitle) lblTitle.innerHTML = `ขา ${l}`;
+          if (badgeRole) {
+            badgeRole.innerText = "ตรงข้ามล่อฟ้า";
+            badgeRole.className = "text-[10px] px-1.5 py-0.5 rounded bg-slate-800 font-mono text-sky-400 font-semibold border border-slate-700";
+          }
+        } else {
+          if (btn) {
+            btn.className = "bg-white border-slate-300 text-slate-700 hover:bg-slate-50 py-2.5 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center";
+            btn.innerHTML = `<span>ขา ${l}</span><span class="text-[10px] font-normal opacity-70">${subText}</span>`;
+          }
+          if (card) {
+            card.className = "p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 transition-all text-left flex flex-col justify-between cursor-pointer hover:shadow-md";
+          }
+          if (lblTitle) lblTitle.innerHTML = `ขา ${l}`;
+          if (badgeRole) {
+            badgeRole.innerText = "เสาด้านข้าง";
+            badgeRole.className = "text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono font-medium border border-slate-200";
+          }
+        }
+      });
+
+      const badgeCurrent = document.getElementById('badge_current_rod');
+      if (badgeCurrent) badgeCurrent.innerText = "ขา " + currentRodLeg;
+
+      const badgeDiag = document.getElementById('badge_diagram_rod');
+      if (badgeDiag) badgeDiag.innerHTML = `เสาขา ${currentRodLeg} (ล่อฟ้า ⚡)`;
+
+      calculateAll();
+    }
+
+    function onTanSelectChange() {
+      const selectVal = document.getElementById('in_tan_select').value;
+      if (selectVal !== 'custom') {
+        document.getElementById('in_tan_p').value = selectVal;
+      }
+      calculateAll();
+    }
+
+    function resetDefaults() {
+      document.getElementById('in_angle').value = "90";
+      document.getElementById('in_rod').value = "6.50";
+      document.getElementById('in_mounting').value = "1.50";
+      document.getElementById('in_width').value = "1.20";
+      document.getElementById('in_omni').value = "4.15";
+      document.getElementById('in_tan_select').value = "1.000";
+      document.getElementById('in_tan_p').value = "1.000";
+      document.getElementById('in_tower_height').value = "72.0";
+      selectRodPole('A');
+    }
+
+    function calculateAll() {
+      const angle = parseFloat(document.getElementById('in_angle').value) || 90;
+      const rod = parseFloat(document.getElementById('in_rod').value) || 0;
+      const mounting = parseFloat(document.getElementById('in_mounting').value) || 0;
+      const width = parseFloat(document.getElementById('in_width').value) || 0;
+      const omni = parseFloat(document.getElementById('in_omni').value) || 0;
+      const tanP = parseFloat(document.getElementById('in_tan_p').value) || 1;
+      const towerH = parseFloat(document.getElementById('in_tower_height').value) || 0;
+
+      // Calculate cos(A) based on angle
+      let cosA = 0;
+      if (angle === 90) {
+        cosA = 0;
+      } else if (angle === 135) {
+        cosA = -Math.SQRT1_2; // -0.70710678
+      } else if (angle === 180) {
+        cosA = -1;
+      } else {
+        cosA = Math.cos(angle * Math.PI / 180);
+      }
+
+      document.getElementById('badge_angle_cos').innerText = `cos(${angle}°) = ${cosA.toFixed(4)}`;
+      document.getElementById('math_lbl_angle').innerText = `A = ${angle}° \u2192 cos(${angle}°) = ${cosA.toFixed(4)}`;
+
+      // Highlight active antenna lines in SVG (Electric Sky Blue)
+      const activeAngleLines = {
+        90: ['a1', 'b1', 'd1'],
+        135: ['a2', 'b2', 'c1', 'c3', 'd2'],
+        180: ['a3', 'b3', 'c2', 'd3']
+      };
+      
+      const allLines = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3', 'c1', 'c2', 'c3', 'd1', 'd2', 'd3'];
+      const activeList = activeAngleLines[angle] || ['a1', 'b1', 'd1'];
+
+      allLines.forEach(id => {
+        const line = document.getElementById('line_' + id);
+        const txt = document.getElementById('txt_' + id);
+        if (line && txt) {
+          if (activeList.includes(id)) {
+            line.classList.add('active-antenna-line');
+            txt.classList.add('active-antenna-text');
+          } else {
+            line.classList.remove('active-antenna-line');
+            txt.classList.remove('active-antenna-text');
+          }
+        }
+      });
+
+      // 1. Geometry / Law of Cosines for distance C (Adjacent Poles)
+      const a2 = mounting * mounting;
+      const b2 = width * width;
+      const sum_ab2 = a2 + b2; // J8
+      const cos_part = 2 * mounting * width * cosA; // G11 in Excel
+      const c2 = sum_ab2 - cos_part; // G13 in Excel
+      const c_adj = Math.sqrt(Math.max(0, c2)); // G16 in Excel
+
+      document.getElementById('out_a2').innerText = a2.toFixed(4);
+      document.getElementById('out_b2').innerText = b2.toFixed(4);
+      document.getElementById('out_sum_ab2').innerText = sum_ab2.toFixed(4);
+      document.getElementById('out_cos_part').innerText = cos_part.toFixed(4);
+      document.getElementById('out_c2').innerText = c2.toFixed(4);
+      document.getElementById('out_c_val').innerText = c_adj.toFixed(4) + " m";
+      document.getElementById('math_lbl_c').innerText = "c = " + c_adj.toFixed(4) + " m";
+
+      // Update geometry card labels
+      const mathRod = document.getElementById('math_lbl_rod');
+      if (mathRod) mathRod.innerText = "ขา " + currentRodLeg;
+      const mathOpp = document.getElementById('math_lbl_opp');
+      if (mathOpp) mathOpp.innerText = "ขา " + opposites[currentRodLeg];
+
+      // 2. Geometry for Opposite Pole (Matching Excel formulas for each angle)
+      let c_opp = 0;
+      if (angle === 90) {
+        c_opp = Math.sqrt(Math.pow(width + mounting, 2) + Math.pow(width, 2));
+      } else if (angle === 135) {
+        // Law of Cosines on diagonal (cell N14 in Excel ANT_135 = 2.955 m)
+        c_opp = Math.sqrt(Math.pow(mounting, 2) + 2 * Math.pow(width, 2) - 2 * mounting * (width * Math.SQRT2) * cosA);
+      } else { // 180°
+        // (width * Root(2)) + mounting (cell G10 in Excel ANT_180 = 3.20 m)
+        c_opp = (width * Math.SQRT2) + mounting;
+      }
+
+      // Base formulas:
+      // A) Pole with Rod:
+      const rod_step_a = (mounting + (omni * tanP)) / tanP;
+      const rod_drop = rod_step_a - rod;
+      const rod_final_height = towerH - rod_drop;
+
+      // B) Adjacent Poles:
+      const adj_step_b = (c_adj + (omni * tanP)) / tanP;
+      const adj_drop = adj_step_b - rod;
+      const adj_final_height = towerH - adj_drop;
+
+      // C) Opposite Pole:
+      const opp_step_b = (c_opp + (omni * tanP)) / tanP;
+      const opp_drop = opp_step_b - rod;
+      const opp_final_height = towerH - opp_drop;
+
+      // Update 4 cards based on currentRodLeg (Blue, White, Silver, Black theme)
+      ['A', 'B', 'C', 'D'].forEach(leg => {
+        const lower = leg.toLowerCase();
+        const card = document.getElementById('res_card_' + lower);
+        const badge = document.getElementById('res_badge_' + lower);
+        const box = document.getElementById('res_box_' + lower);
+        const dropEl = document.getElementById('res_drop_' + lower);
+        const descEl = document.getElementById('res_desc_' + lower);
+        const heightEl = document.getElementById('res_final_height_' + lower);
+        
+        // Table elements
+        const tblRole = document.getElementById('tbl_role_' + lower);
+        const tblDist = document.getElementById('tbl_dist_' + lower);
+        const tblDrop = document.getElementById('tbl_drop_' + lower);
+        const tblHeight = document.getElementById('tbl_height_' + lower);
+        const tblAction = document.getElementById('tbl_action_' + lower);
+        const thCol = document.getElementById('th_col_' + lower);
+
+        if (leg === currentRodLeg) {
+          // --- Pole with Lightning Rod (Sky Blue Highlight) ---
+          thCol.innerHTML = `เสาต้นที่ ${leg} <span class="text-sky-300 font-bold">(ล่อฟ้า ⚡)</span>`;
+          card.className = "glass-card rounded-2xl p-5 custom-shadow border-t-4 border-sky-600 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md";
+          badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-900 border border-sky-200";
+          badge.innerHTML = `⚡ เสาต้นที่ ${leg} (เสาที่มีล่อฟ้า)`;
+
+          box.className = "bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1";
+          box.innerHTML = `
+            <div class="text-slate-500">สูตร (A): [mounting + (Omni*TAN(P))] / TAN(P)</div>
+            <div class="font-semibold mono text-slate-800">= ${rod_step_a.toFixed(4)} m</div>
+          `;
+
+          dropEl.innerText = (rod_drop >= 0 ? "+" : "") + rod_drop.toFixed(4) + " m";
+          dropEl.className = "text-2xl font-bold mono " + (rod_drop <= 0 ? "text-sky-600" : "text-slate-800");
+          descEl.innerText = rod_drop <= 0 
+            ? "* ค่าติดลบ: เพิ่มระดับขึ้นได้ " + Math.abs(rod_drop).toFixed(2) + " m เหนือยอดเสา"
+            : "* ค่าเป็นบวก: ต้องลดระยะลง " + rod_drop.toFixed(2) + " m จากยอดเสา";
+          descEl.className = "text-xs font-medium mt-0.5 " + (rod_drop <= 0 ? "text-sky-700" : "text-slate-700");
+          heightEl.innerText = rod_final_height.toFixed(2) + " m";
+
+          // Table
+          tblRole.innerText = "มีล่อฟ้า ⚡";
+          tblRole.className = "p-3 text-center mono font-bold text-sky-600";
+          tblDist.innerText = mounting.toFixed(2) + " m (Mounting)";
+          tblDist.className = "p-3 text-center mono font-semibold text-slate-800";
+          tblDrop.innerText = (rod_drop >= 0 ? "+" : "") + rod_drop.toFixed(2) + " m";
+          tblDrop.className = "p-3 text-center mono font-bold " + (rod_drop <= 0 ? "text-sky-600" : "text-slate-800");
+          tblHeight.innerText = rod_final_height.toFixed(2) + " m";
+          tblAction.innerText = rod_drop <= 0 
+            ? "สูงกว่ายอดเสา +" + Math.abs(rod_drop).toFixed(2) + " m" 
+            : "ต่ำกว่ายอดเสา -" + rod_drop.toFixed(2) + " m";
+          tblAction.className = "p-3 text-center font-medium " + (rod_drop <= 0 ? "text-sky-600" : "text-slate-700");
+
+        } else if (leg === opposites[currentRodLeg]) {
+          // --- Opposite Pole (Deep Obsidian Black / Silver) ---
+          thCol.innerHTML = `เสาต้นที่ ${leg} <span class="text-slate-300 font-medium">(ตรงข้าม)</span>`;
+          card.className = "glass-card rounded-2xl p-5 custom-shadow border-t-4 border-slate-900 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md";
+          badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-900 text-white border border-slate-700";
+          badge.innerHTML = `🎯 เสาต้นที่ ${leg} (ตรงข้ามล่อฟ้า)`;
+
+          box.className = "bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1";
+          box.innerHTML = `
+            <div class="text-slate-600">ระยะล่อฟ้าไปขา ${leg} (มุม ${angle}°): <span class="mono font-semibold text-slate-900">${c_opp.toFixed(2)} m</span></div>
+            <div class="text-slate-500">สูตร: [(${c_opp.toFixed(2)} + (Omni*TAN(P))] / TAN(P)</div>
+            <div class="font-semibold mono text-slate-800">= ${opp_step_b.toFixed(4)} m</div>
+          `;
+
+          dropEl.innerText = (opp_drop >= 0 ? "+" : "") + opp_drop.toFixed(4) + " m";
+          dropEl.className = "text-2xl font-bold mono " + (opp_drop <= 0 ? "text-sky-600" : "text-slate-900");
+          descEl.innerText = opp_drop <= 0 
+            ? "* ค่าติดลบ: เพิ่มระดับขึ้นได้ " + Math.abs(opp_drop).toFixed(2) + " m เหนือยอดเสา"
+            : "* ค่าเป็นบวก: ต้องลดระยะลง " + opp_drop.toFixed(2) + " m จากยอดเสา";
+          descEl.className = "text-xs font-medium mt-0.5 " + (opp_drop <= 0 ? "text-sky-700" : "text-slate-700");
+          heightEl.innerText = opp_final_height.toFixed(2) + " m";
+
+          // Table
+          tblRole.innerText = "ตรงข้ามล่อฟ้า";
+          tblRole.className = "p-3 text-center mono text-slate-900 font-bold";
+          tblDist.innerText = c_opp.toFixed(2) + " m (ค่า C ตรงข้าม)";
+          tblDist.className = "p-3 text-center mono font-bold text-slate-900";
+          tblDrop.innerText = (opp_drop >= 0 ? "+" : "") + opp_drop.toFixed(2) + " m";
+          tblDrop.className = "p-3 text-center mono font-bold " + (opp_drop <= 0 ? "text-sky-600" : "text-slate-900");
+          tblHeight.innerText = opp_final_height.toFixed(2) + " m";
+          tblAction.innerText = opp_drop <= 0 
+            ? "สูงกว่ายอดเสา +" + Math.abs(opp_drop).toFixed(2) + " m" 
+            : "ต่ำกว่ายอดเสา -" + opp_drop.toFixed(2) + " m";
+          tblAction.className = "p-3 text-center font-medium " + (opp_drop <= 0 ? "text-sky-600" : "text-slate-700");
+
+        } else {
+          // --- Adjacent Pole (Silver / Slate) ---
+          thCol.innerHTML = `เสาต้นที่ ${leg} <span class="text-slate-300 font-medium">(ด้านข้าง)</span>`;
+          card.className = "glass-card rounded-2xl p-5 custom-shadow border-t-4 border-slate-400 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md";
+          badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300";
+          badge.innerHTML = `📡 เสาต้นที่ ${leg} (เสาด้านข้าง)`;
+
+          box.className = "bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1";
+          box.innerHTML = `
+            <div class="text-slate-500">ระยะล่อฟ้าไปขา ${leg} (มุม ${angle}°): <span class="mono font-semibold text-slate-800">${c_adj.toFixed(2)} m</span></div>
+            <div class="text-slate-500">สูตร (B): [(A) + (Omni*TAN(P))] / TAN(P)</div>
+            <div class="font-semibold mono text-slate-800">= ${adj_step_b.toFixed(4)} m</div>
+          `;
+
+          dropEl.innerText = (adj_drop >= 0 ? "+" : "") + adj_drop.toFixed(4) + " m";
+          dropEl.className = "text-2xl font-bold mono " + (adj_drop <= 0 ? "text-sky-600" : "text-slate-800");
+          descEl.innerText = adj_drop <= 0 
+            ? "* ค่าติดลบ: เพิ่มระดับขึ้นได้ " + Math.abs(adj_drop).toFixed(2) + " m เหนือยอดเสา"
+            : "* ค่าเป็นบวก: ต้องลดระยะลง " + adj_drop.toFixed(2) + " m จากยอดเสา";
+          descEl.className = "text-xs font-medium mt-0.5 " + (adj_drop <= 0 ? "text-sky-700" : "text-slate-700");
+          heightEl.innerText = adj_final_height.toFixed(2) + " m";
+
+          // Table
+          tblRole.innerText = "เสาด้านข้าง";
+          tblRole.className = "p-3 text-center mono text-slate-600 font-medium";
+          tblDist.innerText = c_adj.toFixed(2) + " m (ค่า C)";
+          tblDist.className = "p-3 text-center mono font-semibold text-slate-800";
+          tblDrop.innerText = (adj_drop >= 0 ? "+" : "") + adj_drop.toFixed(2) + " m";
+          tblDrop.className = "p-3 text-center mono font-bold " + (adj_drop <= 0 ? "text-sky-600" : "text-slate-800");
+          tblHeight.innerText = adj_final_height.toFixed(2) + " m";
+          tblAction.innerText = adj_drop <= 0 
+            ? "สูงกว่ายอดเสา +" + Math.abs(adj_drop).toFixed(2) + " m" 
+            : "ต่ำกว่ายอดเสา -" + adj_drop.toFixed(2) + " m";
+          tblAction.className = "p-3 text-center font-medium " + (adj_drop <= 0 ? "text-sky-600" : "text-slate-700");
+        }
+      });
+    }
+
+    // Initialize on load
+    selectRodPole('A');
+  </script>
+</body>
+</html>
