@@ -254,7 +254,7 @@
               </span>
             </div>
             <div class="relative">
-              <select id="in_tower_calc_type" onchange="calculateAll()" 
+              <select id="in_tower_calc_type" onchange="onTowerTypeChange()" 
                       class="w-full rounded-xl px-4 py-2.5 font-bold text-slate-900 bg-white border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition shadow-sm cursor-pointer">
                 <optgroup label="🗼 เสา 4 ขา (Self Support ชนิด 4 ขา)">
                   <option value="4leg_90" selected>สูตรคำนวน ANT_90 องศา (Self Support ชนิด 4 ขา)</option>
@@ -1158,7 +1158,7 @@
           file: 'สูตรคำนวน ANT_สามเหลี่ยม.xlsx',
           sheet: 'เสาสามเหลี่ยม',
           excelImg: 'antenna_diagram_tri.png',
-          hint: '* เสาสามเหลี่ยมด้านเท่า (Sheet เสาสามเหลี่ยม): <span class="mono text-sky-700 font-semibold">G5=0.5774·b, G6=G5+a, c² = G5² + (G5+G6)² - 2·G5·G6·cos(120°)</span>',
+          hint: '* เสาสามเหลี่ยมด้านเท่า (Sheet เสาสามเหลี่ยม): <span class="mono text-sky-700 font-semibold">G5=0.5774·b, G6=G5+a, c² = G5² + G6² - 2·G5·G6·cos(120°)</span>',
           label: 'สูตรคำนวน ANT_สามเหลี่ยม (Self Support ชนิด 3 ขา)'
         };
       } else if (val === '4leg_135') {
@@ -2375,6 +2375,14 @@
         document.getElementById('in_tan_p').value = selectVal;
       }
       calculateAll();
+    function onTowerTypeChange() {
+      const type = getTowerCalcType();
+      if (type.is3Leg) {
+        document.getElementById('in_tower_height').value = "60.0";
+      } else {
+        document.getElementById('in_tower_height').value = "72.0";
+      }
+      calculateAll();
     }
 
     function resetDefaults() {
@@ -2450,7 +2458,7 @@
       const formulaHint = document.getElementById('lbl_formula_hint');
       if (formulaHint) {
         formulaHint.innerHTML = type.is3Leg
-          ? `* เสาสามเหลี่ยมด้านเท่า (Sheet เสาสามเหลี่ยม): <span class="mono text-sky-700 font-semibold">G5=0.5774·b, G6=G5+a, c² = G5² + (G5+G6)² - 2·G5·G6·cos(120°)</span>`
+          ? `* เสาสามเหลี่ยมด้านเท่า (Sheet เสาสามเหลี่ยม): <span class="mono text-sky-700 font-semibold">G5=0.5774·b, G6=G5+a, c² = G5² + G6² - 2·G5·G6·cos(120°)</span>`
           : `* คำนวณตามกฎของโคไซน์: <span class="mono text-sky-700 font-semibold">c² = a² + b² - 2ab·cos(${angle}°)</span>`;
       }
 
@@ -2614,7 +2622,7 @@
         // G5 = C12 * width (ระยะจากศูนย์กลางสามเหลี่ยมไปยังมุมของเสาแต่ละมุม)
         // G6 = G5 + mounting (ระยะจากศูนย์กลางสามเหลี่ยมไปยังตำแหน่งที่ติดตั้งสายอากาศ)
         // G8 = POWER(G5, 2)
-        // G9 = POWER(G5 + G6, 2)
+        // G9 = POWER(G6, 2)
         // J8 = G8 + G9
         // G11 = 2 * G5 * G6 * cos(120°) [where cos(120°) = -0.5]
         // G13 = J8 - G11
@@ -2622,21 +2630,21 @@
         const g5 = 0.5774 * width;
         const g6 = g5 + mounting;
         const g8 = Math.pow(g5, 2);
-        const g9 = Math.pow(g5 + g6, 2);
+        const g9 = Math.pow(g6, 2);
         sum_ab2 = g8 + g9; // Cell J8
         cos_part = 2 * g5 * g6 * cosA; // Cell G11 (with cosA = -0.5)
         c2 = sum_ab2 - cos_part; // Cell G13
         c_adj = Math.sqrt(Math.max(0, c2)); // Cell G16 / C22
 
         const fText = document.getElementById('math_formula_text');
-        if (fText) fText.innerHTML = 'c² = G5² + (G5+G6)² - 2·G5·G6·cos(120°)';
+        if (fText) fText.innerHTML = 'c² = G5² + G6² - 2·G5·G6·cos(120°)';
 
         const l1 = document.getElementById('lbl_out_row1');
         if (l1) l1.innerHTML = 'ระยะศูนย์กลางถึงมุมเสา (G5) [เซลล์ G5]:';
         const l2 = document.getElementById('lbl_out_row2');
         if (l2) l2.innerHTML = 'ระยะศูนย์กลางถึงสายอากาศ (G6) [เซลล์ G6]:';
         const l3 = document.getElementById('lbl_out_row3');
-        if (l3) l3.innerHTML = 'ส่วนที่ (1) G5² + (G5+G6)² [เซลล์ J8]:';
+        if (l3) l3.innerHTML = 'ส่วนที่ (1) G5² + G6² [เซลล์ J8]:';
         const l4 = document.getElementById('lbl_out_row4');
         if (l4) l4.innerHTML = 'ส่วนที่ (2) 2 * G5 * G6 * cos(120°) [เซลล์ G11]:';
         const l5 = document.getElementById('lbl_out_row5');
