@@ -427,7 +427,7 @@
         </div>
 
         <div class="bg-slate-100 rounded-xl p-3 text-xs mono text-slate-700 mb-4 border border-slate-200 leading-relaxed space-y-1">
-          <div>สูตร: <span class="text-sky-600 font-semibold">c² = a² + b² - 2ab·cos(A)</span></div>
+          <div>สูตร: <span class="text-sky-600 font-semibold" id="math_formula_text">c² = a² + b² - 2ab·cos(A)</span></div>
           <div>มุมที่เลือก: <span class="text-slate-800 font-semibold" id="math_lbl_angle">A = 90° &rarr; cos(90°) = 0</span></div>
           <div class="flex items-center gap-2 pt-1 border-t border-slate-200">
             <span>⚡ ล่อฟ้า: <strong class="text-sky-600 font-bold" id="math_lbl_rod">ขา A</strong></span>
@@ -439,27 +439,27 @@
 
         <div class="space-y-2 text-xs">
           <div class="flex justify-between py-1.5 border-b border-slate-100">
-            <span class="text-slate-600">ค่า a² (a * a) [เซลล์ G8]:</span>
+            <span class="text-slate-600" id="lbl_out_row1">ค่า a² (a * a) [เซลล์ G8]:</span>
             <span class="font-semibold mono text-slate-800" id="out_a2">2.25</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-slate-100">
-            <span class="text-slate-600">ค่า b² (b * b) [เซลล์ G9]:</span>
+            <span class="text-slate-600" id="lbl_out_row2">ค่า b² (b * b) [เซลล์ G9]:</span>
             <span class="font-semibold mono text-slate-800" id="out_b2">1.44</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-slate-100">
-            <span class="text-slate-600">ส่วนที่ (1) a² + b² [เซลล์ J8]:</span>
+            <span class="text-slate-600" id="lbl_out_row3">ส่วนที่ (1) a² + b² [เซลล์ J8]:</span>
             <span class="font-semibold mono text-slate-800" id="out_sum_ab2">3.69</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-slate-100">
-            <span class="text-slate-600">ส่วนที่ (2) 2 * a * b * cos(A) [เซลล์ G11]:</span>
+            <span class="text-slate-600" id="lbl_out_row4">ส่วนที่ (2) 2 * a * b * cos(A) [เซลล์ G11]:</span>
             <span class="font-semibold mono text-slate-800" id="out_cos_part">0.00</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-slate-100">
-            <span class="text-slate-600">ส่วนที่ (3) = (1) - (2) [เซลล์ G13]:</span>
+            <span class="text-slate-600" id="lbl_out_row5">ส่วนที่ (3) = (1) - (2) [เซลล์ G13]:</span>
             <span class="font-semibold mono text-slate-800" id="out_c2">3.69</span>
           </div>
           <div class="flex justify-between py-2 bg-sky-50 px-3 rounded-lg border border-sky-200 text-sm">
-            <span class="font-bold text-sky-950">ระยะ C = √((3)) [เซลล์ G16 / C22]:</span>
+            <span class="font-bold text-sky-950" id="lbl_out_row6">ระยะ C = √((3)) [เซลล์ G16 / C22]:</span>
             <span class="font-bold mono text-sky-700" id="out_c_val">1.9209 m</span>
           </div>
         </div>
@@ -1158,7 +1158,7 @@
           file: 'สูตรคำนวน ANT_สามเหลี่ยม.xlsx',
           sheet: 'เสาสามเหลี่ยม',
           excelImg: 'antenna_diagram_tri.png',
-          hint: '* เสาสามเหลี่ยมด้านเท่า: <span class="mono text-sky-700 font-semibold">c² = a² + b² - 2ab·cos(120°), cos = -0.5</span>',
+          hint: '* เสาสามเหลี่ยมด้านเท่า (Sheet เสาสามเหลี่ยม): <span class="mono text-sky-700 font-semibold">G5=0.5774·b, G6=G5+a, c² = G5² + (G5+G6)² - 2·G5·G6·cos(120°)</span>',
           label: 'สูตรคำนวน ANT_สามเหลี่ยม (Self Support ชนิด 3 ขา)'
         };
       } else if (val === '4leg_135') {
@@ -2415,9 +2415,7 @@
       }
       const mainSubtitle = document.getElementById('main_dashboard_subtitle');
       if (mainSubtitle) {
-        mainSubtitle.innerText = type.is3Leg
-          ? "วิเคราะห์และประมวลผลตามสูตรเสาสามเหลี่ยม (Sheet: เสาสามเหลี่ยม) พร้อมโมเดล 3D และผัง 2D"
-          : "วิเคราะห์และประมวลผลตามสูตรทางคณิตศาสตร์จากไฟล์ Excel โดยตรง พร้อมโมเดล 3D แบบเรียลไทม์";
+        mainSubtitle.innerHTML = `วิเคราะห์ขั้นตอนตามหลักวิศวกรรมจากไฟล์ <span class="font-semibold text-slate-900 underline" id="lbl_sub_filename">${type.file}</span> (Sheet: <span class="mono text-sky-700 font-semibold" id="lbl_sub_sheetname">${type.sheet}</span>)`;
       }
       const topBadge = document.getElementById('badge_top_formula');
       if (topBadge) topBadge.innerText = type.file;
@@ -2428,7 +2426,7 @@
       // Calculate cos(A) based on tower type
       let cosA = 0;
       if (type.is3Leg) {
-        cosA = -0.5; // cos(120°) or cos(240°/300°) as cell B16 in Excel
+        cosA = -0.5; // cos(120°) as cell C17 in Sheet เสาสามเหลี่ยม
       } else if (angle === 90) {
         cosA = 0;
       } else if (angle === 135) {
@@ -2446,13 +2444,13 @@
       const mathAngle = document.getElementById('math_lbl_angle');
       if (mathAngle) {
         mathAngle.innerText = type.is3Leg 
-          ? `A = 120° → cos(120°) = -0.5000 (เสาสามเหลี่ยม)` 
+          ? `A = 120° → cos(120°) = -0.5000 (เสาสามเหลี่ยม Sheet: เสาสามเหลี่ยม)` 
           : `A = ${angle}° → cos(${angle}°) = ${cosA.toFixed(4)}`;
       }
       const formulaHint = document.getElementById('lbl_formula_hint');
       if (formulaHint) {
         formulaHint.innerHTML = type.is3Leg
-          ? `* เสาสามเหลี่ยมด้านเท่า: <span class="mono text-sky-700 font-semibold">c² = a² + b² - 2ab·cos(120°), cos = -0.5</span>`
+          ? `* เสาสามเหลี่ยมด้านเท่า (Sheet เสาสามเหลี่ยม): <span class="mono text-sky-700 font-semibold">G5=0.5774·b, G6=G5+a, c² = G5² + (G5+G6)² - 2·G5·G6·cos(120°)</span>`
           : `* คำนวณตามกฎของโคไซน์: <span class="mono text-sky-700 font-semibold">c² = a² + b² - 2ab·cos(${angle}°)</span>`;
       }
 
@@ -2472,7 +2470,7 @@
       // Highlight active antenna lines in SVG
       if (type.is3Leg) {
         const triLines = ['tri_a1', 'tri_a2', 'tri_a3', 'tri_b1', 'tri_b2', 'tri_b3', 'tri_c1', 'tri_c2', 'tri_c3'];
-        const activeTri = ['tri_a1', 'tri_b1', 'tri_c1']; // A1(90°), B1(180°), C1(0°) as in sheet เสาสามเหลี่ยม
+        const activeTri = ['tri_a1', 'tri_b3', 'tri_c3']; // A1(90°), B3(210°), C3(330°) radial directions matching Sheet เสาสามเหลี่ยม
         triLines.forEach(id => {
           const line = document.getElementById('line_' + id);
           const txt = document.getElementById('txt_' + id);
@@ -2607,15 +2605,75 @@
       }
 
       // 1. Geometry / Law of Cosines for distance C (Adjacent Poles)
-      const a2 = mounting * mounting;
-      const b2 = width * width;
-      const sum_ab2 = a2 + b2;
-      const cos_part = 2 * mounting * width * cosA;
-      const c2 = sum_ab2 - cos_part;
-      const c_adj = Math.sqrt(Math.max(0, c2));
+      let c_adj = 0;
+      let sum_ab2 = 0, cos_part = 0, c2 = 0;
 
-      document.getElementById('out_a2').innerText = a2.toFixed(4);
-      document.getElementById('out_b2').innerText = b2.toFixed(4);
+      if (type.is3Leg) {
+        // Calculation from Sheet 'เสาสามเหลี่ยม' in สูตรคำนวน ANT_สามเหลี่ยม.xlsx:
+        // C12 = 0.5774 (formula factor 1/sqrt(3))
+        // G5 = C12 * width (ระยะจากศูนย์กลางสามเหลี่ยมไปยังมุมของเสาแต่ละมุม)
+        // G6 = G5 + mounting (ระยะจากศูนย์กลางสามเหลี่ยมไปยังตำแหน่งที่ติดตั้งสายอากาศ)
+        // G8 = POWER(G5, 2)
+        // G9 = POWER(G5 + G6, 2)
+        // J8 = G8 + G9
+        // G11 = 2 * G5 * G6 * cos(120°) [where cos(120°) = -0.5]
+        // G13 = J8 - G11
+        // G16 = SQRT(G13) (ระยะ C ในเซลล์ C22)
+        const g5 = 0.5774 * width;
+        const g6 = g5 + mounting;
+        const g8 = Math.pow(g5, 2);
+        const g9 = Math.pow(g5 + g6, 2);
+        sum_ab2 = g8 + g9; // Cell J8
+        cos_part = 2 * g5 * g6 * cosA; // Cell G11 (with cosA = -0.5)
+        c2 = sum_ab2 - cos_part; // Cell G13
+        c_adj = Math.sqrt(Math.max(0, c2)); // Cell G16 / C22
+
+        const fText = document.getElementById('math_formula_text');
+        if (fText) fText.innerHTML = 'c² = G5² + (G5+G6)² - 2·G5·G6·cos(120°)';
+
+        const l1 = document.getElementById('lbl_out_row1');
+        if (l1) l1.innerHTML = 'ระยะศูนย์กลางถึงมุมเสา (G5) [เซลล์ G5]:';
+        const l2 = document.getElementById('lbl_out_row2');
+        if (l2) l2.innerHTML = 'ระยะศูนย์กลางถึงสายอากาศ (G6) [เซลล์ G6]:';
+        const l3 = document.getElementById('lbl_out_row3');
+        if (l3) l3.innerHTML = 'ส่วนที่ (1) G5² + (G5+G6)² [เซลล์ J8]:';
+        const l4 = document.getElementById('lbl_out_row4');
+        if (l4) l4.innerHTML = 'ส่วนที่ (2) 2 * G5 * G6 * cos(120°) [เซลล์ G11]:';
+        const l5 = document.getElementById('lbl_out_row5');
+        if (l5) l5.innerHTML = 'ส่วนที่ (3) = (1) - (2) [เซลล์ G13]:';
+        const l6 = document.getElementById('lbl_out_row6');
+        if (l6) l6.innerHTML = 'ระยะ C = √((3)) [เซลล์ G16 / C22]:';
+
+        document.getElementById('out_a2').innerText = g5.toFixed(4) + " m";
+        document.getElementById('out_b2').innerText = g6.toFixed(4) + " m";
+      } else {
+        const a2 = mounting * mounting;
+        const b2 = width * width;
+        sum_ab2 = a2 + b2;
+        cos_part = 2 * mounting * width * cosA;
+        c2 = sum_ab2 - cos_part;
+        c_adj = Math.sqrt(Math.max(0, c2));
+
+        const fText = document.getElementById('math_formula_text');
+        if (fText) fText.innerHTML = 'c² = a² + b² - 2ab·cos(' + angle + '°)';
+
+        const l1 = document.getElementById('lbl_out_row1');
+        if (l1) l1.innerHTML = 'ค่า a² (a * a) [เซลล์ G8]:';
+        const l2 = document.getElementById('lbl_out_row2');
+        if (l2) l2.innerHTML = 'ค่า b² (b * b) [เซลล์ G9]:';
+        const l3 = document.getElementById('lbl_out_row3');
+        if (l3) l3.innerHTML = 'ส่วนที่ (1) a² + b² [เซลล์ J8]:';
+        const l4 = document.getElementById('lbl_out_row4');
+        if (l4) l4.innerHTML = 'ส่วนที่ (2) 2 * a * b * cos(A) [เซลล์ G11]:';
+        const l5 = document.getElementById('lbl_out_row5');
+        if (l5) l5.innerHTML = 'ส่วนที่ (3) = (1) - (2) [เซลล์ G13]:';
+        const l6 = document.getElementById('lbl_out_row6');
+        if (l6) l6.innerHTML = 'ระยะ C = √((3)) [เซลล์ G16 / C22]:';
+
+        document.getElementById('out_a2').innerText = a2.toFixed(4);
+        document.getElementById('out_b2').innerText = b2.toFixed(4);
+      }
+
       document.getElementById('out_sum_ab2').innerText = sum_ab2.toFixed(4);
       document.getElementById('out_cos_part').innerText = cos_part.toFixed(4);
       document.getElementById('out_c2').innerText = c2.toFixed(4);
