@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agent tou - Dashboard วิเคราะห์สูตรคำนวณระดับความสูงติดตั้ง Antenna</title>
+  <title>Agent tou - ระบบคำนวณระยะติดตั้งสายอากาศ Omni (Self Support)</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <!-- Three.js 3D WebGL Engine & OrbitControls -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -196,27 +196,24 @@
     <div class="glass-card rounded-2xl p-6 md:p-8 custom-shadow border-l-8 border-sky-600">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950 text-sky-400 border border-slate-800 text-xs font-semibold uppercase tracking-wider mb-2">
-            <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
-            Agent: tou
-          </div>
-          <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
-            Dashboard วิเคราะห์สูตรคำนวณระดับความสูงการติดตั้ง Antenna (ANT 90° / 135° / 180°)
+          <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight" id="main_dashboard_title">
+            ระบบคำนวณระยะติดตั้งสายอากาศ Omni (Self Support ชนิด 4 ขา)
           </h1>
-          <p class="text-slate-600 mt-1 text-sm md:text-base">
-            วิเคราะห์ขั้นตอนตามหลักวิศวกรรมจากไฟล์ <span class="font-semibold text-slate-900 underline">สูตรคำนวน ANT_90 องศา.xlsx</span> (Sheet: <span class="mono text-sky-700 font-semibold">90องศา</span>)
+          <p class="text-slate-600 mt-1 text-sm md:text-base" id="main_dashboard_subtitle">
+            วิเคราะห์ขั้นตอนตามหลักวิศวกรรมจากไฟล์ <span class="font-semibold text-slate-900 underline" id="lbl_sub_filename">สูตรคำนวน ANT_90 องศา.xlsx</span> (Sheet: <span class="mono text-sky-700 font-semibold" id="lbl_sub_sheetname">90องศา</span>)
           </p>
         </div>
-        <div class="flex flex-wrap gap-2 items-center">
-          <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 text-xs font-medium border border-sky-200">
-            ⚡ สัญลักษณ์ล่อฟ้าขยับตามขาที่เลือก
-          </span>
-          <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-slate-100 text-slate-800 text-xs font-medium border border-slate-300">
-            📐 Drop-down มุม 90°, 135°, 180°
-          </span>
-          <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition border border-slate-700 flex items-center gap-1 shadow-sm">
-            🖨️ พิมพ์รายงาน
-          </button>
+        <div class="flex items-center">
+          <!-- Hidden badges to preserve DOM IDs safely -->
+          <div class="hidden">
+            <span id="badge_top_rod"></span>
+            <span id="badge_top_formula"></span>
+            <span id="badge_top_angle"></span>
+          </div>
+          <!-- FORTH Corporation Logo replacing the circled badges -->
+          <div class="flex items-center justify-center bg-white p-2.5 sm:px-4 sm:py-3 rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md transition">
+            <img src="forth_logo.png" alt="FORTH CORPORATION PUBLIC CO.,LTD." class="h-12 sm:h-14 md:h-16 w-auto object-contain">
+          </div>
         </div>
       </div>
     </div>
@@ -246,25 +243,32 @@
 
         <div class="space-y-4 text-sm">
           
-          <!-- Dropdown: มุมขาจับยึดสายอากาศ (Mounting Angle: 90, 135, 180) -->
+          <!-- Dropdown: ชนิดเสาและสูตรคำนวณ (Self Support 4 ขา vs 3 ขาสามเหลี่ยม) -->
           <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-300">
             <div class="flex justify-between items-center mb-1.5">
               <label class="font-bold text-slate-900 flex items-center gap-1.5 text-xs sm:text-sm">
-                <span>📐 มุมขาจับยึดสายอากาศในไฟล์ Excel:</span>
+                <span>📐 ชนิดเสาและสูตรคำนวณ:</span>
               </label>
               <span class="text-xs font-mono font-bold text-sky-800 bg-sky-100 border border-sky-200 px-2 py-0.5 rounded-md" id="badge_angle_cos">
                 cos(90°) = 0
               </span>
             </div>
             <div class="relative">
-              <select id="in_angle" onchange="calculateAll()" 
+              <select id="in_tower_calc_type" onchange="calculateAll()" 
                       class="w-full rounded-xl px-4 py-2.5 font-bold text-slate-900 bg-white border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition shadow-sm cursor-pointer">
-                <option value="90">90 องศา (A1, B1, D1) — มุมฉาก cos A = 0 [ค่าในไฟล์]</option>
-                <option value="135">135 องศา (A2, B2, C1, D2) — มุมป้าน cos A = -0.7071 [ทแยงมุม]</option>
-                <option value="180">180 องศา (A3, B3, C2, D3) — มุมตรง cos A = -1.000 [ขนานหน้าเสา]</option>
+                <optgroup label="🗼 เสา 4 ขา (Self Support ชนิด 4 ขา)">
+                  <option value="4leg_90" selected>สูตรคำนวน ANT_90 องศา (Self Support ชนิด 4 ขา)</option>
+                  <option value="4leg_135">สูตรคำนวน ANT_135 องศา (Self Support ชนิด 4 ขา)</option>
+                  <option value="4leg_180">สูตรคำนวน ANT_180 องศา (Self Support ชนิด 4 ขา)</option>
+                </optgroup>
+                <optgroup label="🔺 เสาสามเหลี่ยม (Self Support ชนิด 3 ขา)">
+                  <option value="3leg_tri">สูตรคำนวน ANT_สามเหลี่ยม (Self Support ชนิด 3 ขา)</option>
+                </optgroup>
               </select>
+              <!-- Hidden input for backward compatibility -->
+              <input type="hidden" id="in_angle" value="90">
             </div>
-            <p class="text-[11px] text-slate-600 mt-1.5 font-medium">
+            <p class="text-[11px] text-slate-600 mt-1.5 font-medium" id="lbl_formula_hint">
               * คำนวณตามกฎของโคไซน์: <span class="mono text-sky-700 font-semibold">c² = a² + b² - 2ab·cos(A)</span>
             </p>
           </div>
@@ -279,30 +283,30 @@
                 ขา A
               </span>
             </div>
-            <div class="grid grid-cols-4 gap-2">
+            <div class="grid grid-cols-4 gap-2" id="container_btn_rods">
               <button type="button" onclick="selectRodPole('A')" id="btn_rod_a" 
                       class="leg-btn-active py-2.5 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center shadow-sm">
-                <span>ขา A ⚡</span>
-                <span class="text-[10px] font-normal opacity-90">(เดิมในไฟล์)</span>
+                <span id="btn_rod_lbl_a">ขา A ⚡</span>
+                <span class="text-[10px] font-normal opacity-90" id="btn_rod_sub_a">(เดิมในไฟล์)</span>
               </button>
               <button type="button" onclick="selectRodPole('B')" id="btn_rod_b" 
                       class="bg-white border-slate-300 text-slate-700 hover:bg-slate-50 py-2.5 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center">
-                <span>ขา B</span>
-                <span class="text-[10px] font-normal opacity-70">หน้าขวา</span>
+                <span id="btn_rod_lbl_b">ขา B</span>
+                <span class="text-[10px] font-normal opacity-70" id="btn_rod_sub_b">หน้าขวา</span>
               </button>
               <button type="button" onclick="selectRodPole('C')" id="btn_rod_c" 
                       class="bg-white border-slate-300 text-slate-700 hover:bg-slate-50 py-2.5 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center">
-                <span>ขา C</span>
-                <span class="text-[10px] font-normal opacity-70">หลังขวา</span>
+                <span id="btn_rod_lbl_c">ขา C</span>
+                <span class="text-[10px] font-normal opacity-70" id="btn_rod_sub_c">หลังขวา</span>
               </button>
               <button type="button" onclick="selectRodPole('D')" id="btn_rod_d" 
                       class="bg-white border-slate-300 text-slate-700 hover:bg-slate-50 py-2.5 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center">
-                <span>ขา D</span>
-                <span class="text-[10px] font-normal opacity-70">หลังซ้าย</span>
+                <span id="btn_rod_lbl_d">ขา D</span>
+                <span class="text-[10px] font-normal opacity-70" id="btn_rod_sub_d">หลังซ้าย</span>
               </button>
             </div>
             <p class="text-[11px] text-slate-600 mt-2 font-medium">
-              * สัญลักษณ์สายฟ้าสีฟ้าบนรูปไดอะแกรมจะวิ่งไปหาขาที่ท่านเลือกทันที
+              * สัญลักษณ์สายฟ้าสีส้มบนรูปไดอะแกรมจะวิ่งไปหาขาที่ท่านเลือกทันที
             </p>
           </div>
 
@@ -470,9 +474,6 @@
       <div class="glass-card glass-card-3d rounded-2xl p-6 custom-shadow border-t-4 border-slate-800">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 mb-4 gap-2">
           <div class="flex items-center gap-2">
-            <div class="p-2.5 rounded-xl bg-slate-900 text-sky-400 font-bold shadow-md text-lg" id="diagram_header_icon">
-              📐
-            </div>
             <div>
               <div class="flex items-center gap-2">
                 <h3 class="font-bold text-slate-800 text-base" id="diagram_header_title">ผังโครงสร้างเสา 2 มิติ (2D Top View Diagram)</h3>
@@ -483,7 +484,7 @@
               <p class="text-xs text-slate-500" id="diagram_header_sub">ผังแสดงตำแหน่งขาเสา A, B, C, D และมุมจับยึดสายอากาศ Omni ในกรอบสีดำ</p>
             </div>
           </div>
-          <!-- Diagram View Switcher (2D / 3D / Static) -->
+          <!-- Diagram View Switcher (2D / 3D) -->
           <div class="inline-flex rounded-xl border border-slate-300 p-1 bg-slate-100 text-xs shadow-inner">
             <button type="button" onclick="setDiagramView('interactive')" id="tab_view_interactive"
                     class="px-3 py-1.5 font-bold rounded-lg bg-slate-900 text-white shadow-sm transition flex items-center gap-1.5">
@@ -493,10 +494,6 @@
             <button type="button" onclick="setDiagramView('3d')" id="tab_view_3d"
                     class="px-3 py-1.5 font-medium rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1">
               <span>🧊 โมเดล 3D</span>
-            </button>
-            <button type="button" onclick="setDiagramView('static')" id="tab_view_static"
-                    class="px-3 py-1.5 font-medium rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1">
-              <span>🖼️ ภาพ Excel</span>
             </button>
           </div>
         </div>
@@ -551,58 +548,147 @@
                   </linearGradient>
                 </defs>
 
-                <!-- Center Square Tower Face with high-tech slate/cyan finish -->
-                <polygon points="320,180 580,180 580,440 320,440" 
-                         fill="url(#tower-dark-grad)" stroke="#38BDF8" stroke-width="2.5" />
-                
-                <!-- Diagonal Line A to C -->
-                <line x1="320" y1="180" x2="580" y2="440" 
-                      stroke="#38BDF8" stroke-width="2.5" stroke-dasharray="8,5" opacity="0.85" />
+                <!-- ================= 4-LEG SQUARE TOWER GROUP ================= -->
+                <g id="svg_4leg_group">
+                  <!-- Center Square Tower Face with high-tech slate/cyan finish -->
+                  <polygon points="320,180 580,180 580,440 320,440" 
+                           fill="url(#tower-dark-grad)" stroke="#38BDF8" stroke-width="2.5" />
+                  
+                  <!-- Diagonal Line A to C -->
+                  <line x1="320" y1="180" x2="580" y2="440" 
+                        stroke="#38BDF8" stroke-width="2.5" stroke-dasharray="8,5" opacity="0.85" />
 
-                <!-- Labels on Tower -->
-                <text x="450" y="160" text-anchor="middle" font-size="15" font-weight="700" fill="#F8FAFC">ความกว้างหน้าเสา</text>
-                <text x="465" y="295" text-anchor="middle" font-size="15" font-weight="700" fill="#38BDF8">ความกว้างด้านแยงมุม</text>
+                  <!-- Labels on Tower -->
+                  <text x="450" y="160" text-anchor="middle" font-size="15" font-weight="700" fill="#F8FAFC">ความกว้างหน้าเสา</text>
+                  <text x="465" y="295" text-anchor="middle" font-size="15" font-weight="700" fill="#38BDF8">ความกว้างด้านแยงมุม</text>
 
-                <!-- ================= Antenna Lines ================= -->
-                <!-- Leg A Antennas -->
-                <line id="line_a1" x1="320" y1="180" x2="320" y2="70" stroke="#64748B" stroke-width="3" />
-                <text id="txt_a1" x="320" y="45" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">A1<tspan x="320" dy="18" font-size="13" fill="#64748B">90 องศา</tspan></text>
+                  <!-- ================= Antenna Lines ================= -->
+                  <!-- Leg A Antennas -->
+                  <line id="line_a1" x1="320" y1="180" x2="320" y2="70" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_a1" x="320" y="45" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">A1<tspan x="320" dy="18" font-size="13" fill="#64748B">90 องศา</tspan></text>
 
-                <line id="line_a2" x1="320" y1="180" x2="215" y2="90" stroke="#64748B" stroke-width="3" />
-                <text id="txt_a2" x="190" y="70" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">A2<tspan x="190" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
+                  <line id="line_a2" x1="320" y1="180" x2="215" y2="90" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_a2" x="190" y="70" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">A2<tspan x="190" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
 
-                <line id="line_a3" x1="320" y1="180" x2="180" y2="180" stroke="#64748B" stroke-width="3" />
-                <text id="txt_a3" x="140" y="170" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">A3<tspan x="140" dy="18" font-size="13" fill="#64748B">180 องศา</tspan></text>
+                  <line id="line_a3" x1="320" y1="180" x2="180" y2="180" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_a3" x="140" y="170" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">A3<tspan x="140" dy="18" font-size="13" fill="#64748B">180 องศา</tspan></text>
 
-                <!-- Leg B Antennas -->
-                <line id="line_b1" x1="580" y1="180" x2="580" y2="70" stroke="#64748B" stroke-width="3" />
-                <text id="txt_b1" x="580" y="45" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">B1<tspan x="580" dy="18" font-size="13" fill="#64748B">90 องศา</tspan></text>
+                  <!-- Leg B Antennas -->
+                  <line id="line_b1" x1="580" y1="180" x2="580" y2="70" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_b1" x="580" y="45" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">B1<tspan x="580" dy="18" font-size="13" fill="#64748B">90 องศา</tspan></text>
 
-                <line id="line_b2" x1="580" y1="180" x2="685" y2="90" stroke="#64748B" stroke-width="3" />
-                <text id="txt_b2" x="715" y="70" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">B2<tspan x="715" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
+                  <line id="line_b2" x1="580" y1="180" x2="685" y2="90" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_b2" x="715" y="70" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">B2<tspan x="715" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
 
-                <line id="line_b3" x1="580" y1="180" x2="720" y2="180" stroke="#64748B" stroke-width="3" />
-                <text id="txt_b3" x="760" y="170" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">B3<tspan x="760" dy="18" font-size="13" fill="#64748B">180 องศา</tspan></text>
+                  <line id="line_b3" x1="580" y1="180" x2="720" y2="180" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_b3" x="760" y="170" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">B3<tspan x="760" dy="18" font-size="13" fill="#64748B">180 องศา</tspan></text>
 
-                <!-- Leg C Antennas -->
-                <line id="line_c1" x1="580" y1="440" x2="720" y2="440" stroke="#64748B" stroke-width="3" />
-                <text id="txt_c1" x="760" y="430" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">C1<tspan x="760" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
+                  <!-- Leg C Antennas -->
+                  <line id="line_c1" x1="580" y1="440" x2="720" y2="440" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_c1" x="760" y="430" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">C1<tspan x="760" dy="18" font-size="13" fill="#64748B">90 องศา</tspan></text>
 
-                <line id="line_c2" x1="580" y1="440" x2="685" y2="530" stroke="#64748B" stroke-width="3" />
-                <text id="txt_c2" x="715" y="550" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">C2<tspan x="715" dy="18" font-size="13" fill="#64748B">180 องศา</tspan></text>
+                  <line id="line_c2" x1="580" y1="440" x2="685" y2="530" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_c2" x="715" y="550" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">C2<tspan x="715" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
 
-                <line id="line_c3" x1="580" y1="440" x2="580" y2="550" stroke="#64748B" stroke-width="3" />
-                <text id="txt_c3" x="580" y="580" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">C3<tspan x="580" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
+                  <line id="line_c3" x1="580" y1="440" x2="580" y2="550" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_c3" x="580" y="580" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">C3<tspan x="580" dy="18" font-size="13" fill="#64748B">180 องศา</tspan></text>
 
-                <!-- Leg D Antennas -->
-                <line id="line_d1" x1="320" y1="440" x2="180" y2="440" stroke="#64748B" stroke-width="3" />
-                <text id="txt_d1" x="140" y="430" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">D1<tspan x="140" dy="18" font-size="13" fill="#64748B">90 องศา</tspan></text>
+                  <!-- Leg D Antennas -->
+                  <line id="line_d1" x1="320" y1="440" x2="180" y2="440" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_d1" x="140" y="430" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">D1<tspan x="140" dy="18" font-size="13" fill="#64748B">90 องศา</tspan></text>
 
-                <line id="line_d2" x1="320" y1="440" x2="215" y2="530" stroke="#64748B" stroke-width="3" />
-                <text id="txt_d2" x="190" y="550" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">D2<tspan x="190" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
+                  <line id="line_d2" x1="320" y1="440" x2="215" y2="530" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_d2" x="190" y="550" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">D2<tspan x="190" dy="18" font-size="13" fill="#64748B">135 องศา</tspan></text>
 
-                <line id="line_d3" x1="320" y1="440" x2="320" y2="550" stroke="#64748B" stroke-width="3" />
-                <text id="txt_d3" x="320" y="580" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">D3<tspan x="320" dy="18" font-size="13" fill="#64748B">180 องศา</tspan></text>
+                  <line id="line_d3" x1="320" y1="440" x2="320" y2="550" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_d3" x="320" y="580" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">D3<tspan x="320" dy="18" font-size="13" fill="#64748B">180 องศา</tspan></text>
+
+                  <!-- 4 Tower Leg Nodes (Clickable) -->
+                  <!-- Leg A Node -->
+                  <g class="svg-leg-node" onclick="selectRodPole('A')" transform="translate(320, 180)">
+                    <circle id="svg_circle_a" r="28" fill="#EA580C" stroke="#FFFFFF" stroke-width="4" filter="url(#shadow-filter)" />
+                    <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#FFFFFF">A</text>
+                  </g>
+
+                  <!-- Leg B Node -->
+                  <g class="svg-leg-node" onclick="selectRodPole('B')" transform="translate(580, 180)">
+                    <circle id="svg_circle_b" r="28" fill="#334155" stroke="#CBD5E1" stroke-width="2.5" filter="url(#shadow-filter)" />
+                    <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#FFFFFF">B</text>
+                  </g>
+
+                  <!-- Leg C Node -->
+                  <g class="svg-leg-node" onclick="selectRodPole('C')" transform="translate(580, 440)">
+                    <circle id="svg_circle_c" r="28" fill="#0F172A" stroke="#38BDF8" stroke-width="3" filter="url(#shadow-filter)" />
+                    <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#38BDF8">C</text>
+                  </g>
+
+                  <!-- Leg D Node -->
+                  <g class="svg-leg-node" onclick="selectRodPole('D')" transform="translate(320, 440)">
+                    <circle id="svg_circle_d" r="28" fill="#334155" stroke="#CBD5E1" stroke-width="2.5" filter="url(#shadow-filter)" />
+                    <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#FFFFFF">D</text>
+                  </g>
+                </g>
+
+                <!-- ================= 3-LEG TRIANGULAR TOWER GROUP ================= -->
+                <g id="svg_3leg_group" class="hidden">
+                  <!-- Equilateral Triangle Tower Base: A(450,140), B(240,480), C(660,480) -->
+                  <polygon points="450,140 240,480 660,480" 
+                           fill="url(#tower-dark-grad)" stroke="#38BDF8" stroke-width="2.5" />
+                  
+                  <!-- Perpendicular Center Altitude Line from A down to base BC -->
+                  <line x1="450" y1="140" x2="450" y2="480" 
+                        stroke="#38BDF8" stroke-width="2" stroke-dasharray="6,4" opacity="0.85" />
+                  <text x="458" y="320" text-anchor="start" font-size="14" font-weight="700" fill="#38BDF8">ความกว้างด้านแขนมุม</text>
+                  
+                  <!-- Base line label: ความกว้างหน้าเสา -->
+                  <text x="450" y="505" text-anchor="middle" font-size="15" font-weight="700" fill="#F8FAFC">ความกว้างหน้าเสา</text>
+
+                  <!-- Leg A Antennas: A1(90° up), A2(150° up-left), A3(30° up-right) -->
+                  <line id="line_tri_a1" x1="450" y1="140" x2="450" y2="35" stroke="#38BDF8" stroke-width="3" />
+                  <text id="txt_tri_a1" x="450" y="20" text-anchor="middle" font-size="14" font-weight="600" fill="#38BDF8">A1<tspan x="450" dy="16" font-size="12" fill="#94A3B8">90 องศา</tspan></text>
+
+                  <line id="line_tri_a2" x1="450" y1="140" x2="330" y2="70" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_tri_a2" x="310" y="55" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">A2<tspan x="310" dy="16" font-size="12" fill="#64748B">150 องศา</tspan></text>
+
+                  <line id="line_tri_a3" x1="450" y1="140" x2="570" y2="70" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_tri_a3" x="590" y="55" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">A3<tspan x="590" dy="16" font-size="12" fill="#64748B">30 องศา</tspan></text>
+
+                  <!-- Leg B Antennas: B1(180° left), B2(240° down-left), B3(210° down-left-mid) -->
+                  <line id="line_tri_b1" x1="240" y1="480" x2="110" y2="480" stroke="#38BDF8" stroke-width="3" />
+                  <text id="txt_tri_b1" x="70" y="475" text-anchor="middle" font-size="14" font-weight="600" fill="#38BDF8">B1<tspan x="70" dy="16" font-size="12" fill="#94A3B8">180 องศา</tspan></text>
+
+                  <line id="line_tri_b2" x1="240" y1="480" x2="140" y2="565" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_tri_b2" x="120" y="585" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">B2<tspan x="120" dy="16" font-size="12" fill="#64748B">240 องศา</tspan></text>
+
+                  <line id="line_tri_b3" x1="240" y1="480" x2="190" y2="585" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_tri_b3" x="190" y="615" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">B3<tspan x="190" dy="16" font-size="12" fill="#64748B">210 องศา</tspan></text>
+
+                  <!-- Leg C Antennas: C1(0° right), C2(300° down-right), C3(330° down-right-mid) -->
+                  <line id="line_tri_c1" x1="660" y1="480" x2="790" y2="480" stroke="#38BDF8" stroke-width="3" />
+                  <text id="txt_tri_c1" x="830" y="475" text-anchor="middle" font-size="14" font-weight="600" fill="#38BDF8">C1<tspan x="830" dy="16" font-size="12" fill="#94A3B8">0 องศา</tspan></text>
+
+                  <line id="line_tri_c2" x1="660" y1="480" x2="760" y2="565" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_tri_c2" x="780" y="585" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">C2<tspan x="780" dy="16" font-size="12" fill="#64748B">300 องศา</tspan></text>
+
+                  <line id="line_tri_c3" x1="660" y1="480" x2="710" y2="585" stroke="#64748B" stroke-width="3" />
+                  <text id="txt_tri_c3" x="710" y="615" text-anchor="middle" font-size="14" font-weight="600" fill="#94A3B8">C3<tspan x="710" dy="16" font-size="12" fill="#64748B">330 องศา</tspan></text>
+
+                  <!-- 3 Tower Leg Nodes for Triangle (Clickable) -->
+                  <g class="svg-leg-node" onclick="selectRodPole('A')" transform="translate(450, 140)">
+                    <circle id="svg_circle_tri_a" r="28" fill="#EA580C" stroke="#FFFFFF" stroke-width="4" filter="url(#shadow-filter)" />
+                    <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#FFFFFF">A</text>
+                  </g>
+
+                  <g class="svg-leg-node" onclick="selectRodPole('B')" transform="translate(240, 480)">
+                    <circle id="svg_circle_tri_b" r="28" fill="#334155" stroke="#CBD5E1" stroke-width="2.5" filter="url(#shadow-filter)" />
+                    <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#FFFFFF">B</text>
+                  </g>
+
+                  <g class="svg-leg-node" onclick="selectRodPole('C')" transform="translate(660, 480)">
+                    <circle id="svg_circle_tri_c" r="28" fill="#334155" stroke="#CBD5E1" stroke-width="2.5" filter="url(#shadow-filter)" />
+                    <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#FFFFFF">C</text>
+                  </g>
+                </g>
 
                 <!-- ================= DYNAMIC AVIATION-ORANGE LIGHTNING BOLT ================= -->
                 <g id="svg_dynamic_lightning" transform="translate(230, 130)" style="transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);">
@@ -616,31 +702,6 @@
                   <!-- Indicator Badge -->
                   <rect x="-15" y="-18" width="85" height="22" rx="6" fill="#020617" stroke="#EA580C" stroke-width="1.5" opacity="0.95" />
                   <text x="27" y="-3" text-anchor="middle" font-size="11" font-weight="700" fill="#FB923C">⚡ ล่อฟ้า</text>
-                </g>
-
-                <!-- ================= 4 Tower Leg Nodes (Clickable) ================= -->
-                <!-- Leg A Node -->
-                <g class="svg-leg-node" onclick="selectRodPole('A')" transform="translate(320, 180)">
-                  <circle id="svg_circle_a" r="28" fill="#EA580C" stroke="#FFFFFF" stroke-width="4" filter="url(#shadow-filter)" />
-                  <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#FFFFFF">A</text>
-                </g>
-
-                <!-- Leg B Node -->
-                <g class="svg-leg-node" onclick="selectRodPole('B')" transform="translate(580, 180)">
-                  <circle id="svg_circle_b" r="28" fill="#334155" stroke="#CBD5E1" stroke-width="2.5" filter="url(#shadow-filter)" />
-                  <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#FFFFFF">B</text>
-                </g>
-
-                <!-- Leg C Node -->
-                <g class="svg-leg-node" onclick="selectRodPole('C')" transform="translate(580, 440)">
-                  <circle id="svg_circle_c" r="28" fill="#0F172A" stroke="#38BDF8" stroke-width="3" filter="url(#shadow-filter)" />
-                  <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#38BDF8">C</text>
-                </g>
-
-                <!-- Leg D Node -->
-                <g class="svg-leg-node" onclick="selectRodPole('D')" transform="translate(320, 440)">
-                  <circle id="svg_circle_d" r="28" fill="#334155" stroke="#CBD5E1" stroke-width="2.5" filter="url(#shadow-filter)" />
-                  <text y="7" text-anchor="middle" font-size="19" font-weight="800" fill="#FFFFFF">D</text>
                 </g>
 
               </svg>
@@ -746,30 +807,11 @@
             </div>
           </div>
 
-          <!-- View 3: Static Image Container (Drawing Picture 62 from Excel, INSIDE THE BLACK FRAME) -->
-          <div id="diagram_static_container" class="w-full h-full flex flex-col justify-center items-center relative p-4 hidden select-none">
-            <div class="viewport-3d-toolbar">
-              <span class="viewport-3d-badge flex items-center gap-1.5">
-                <span>🖼️ ภาพร่างไดอะแกรมต้นฉบับจากไฟล์ Excel (Drawing 62)</span>
-              </span>
-              <span class="viewport-3d-badge text-sky-400 font-mono">สูตรคำนวน ANT_90 องศา.xlsx</span>
-            </div>
-            <div class="flex items-center justify-center w-full h-full pt-8 pb-8">
-              <img src="antenna_diagram.png" 
-                   alt="Antenna Tower Diagram" 
-                   class="max-h-[420px] max-w-full object-contain rounded-xl shadow-2xl bg-white p-3 border border-slate-700">
-            </div>
-            <div class="absolute bottom-3 left-3 z-10 pointer-events-none hidden sm:block">
-              <div class="bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-slate-300 text-[11px] px-3 py-1.5 rounded-xl mono shadow-xl">
-                📐 แบบภาพร่างแสดงการวางมุมรอบเสา 4 ขาตามชีต 90องศา ใน Excel
-              </div>
-            </div>
-          </div>
 
         </div>
 
         <!-- Interactive Clickable Callouts for diagram -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 text-center text-xs">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 text-center text-xs" id="container_callout_legs">
           
           <button type="button" onclick="selectRodPole('A')" id="card_leg_a" 
                   class="btn-3d p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between cursor-pointer leg-btn-active shadow-sm">
@@ -790,12 +832,12 @@
           </button>
 
           <button type="button" onclick="selectRodPole('C')" id="card_leg_c" 
-                  class="btn-3d p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white transition-all text-left flex flex-col justify-between cursor-pointer hover:shadow-md">
+                  class="btn-3d p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 transition-all text-left flex flex-col justify-between cursor-pointer hover:shadow-md">
             <div class="flex items-center justify-between w-full">
               <span class="font-bold text-xs" id="lbl_title_c">ขา C</span>
-              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-sky-400 border border-slate-700 font-mono font-semibold" id="badge_role_c">ตรงข้ามล่อฟ้า</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-mono font-medium" id="badge_role_c">ตรงข้ามล่อฟ้า</span>
             </div>
-            <div class="text-[11px] opacity-75 mt-1" id="lbl_sub_c">C1(135°), C2(180°), C3(135°)</div>
+            <div class="text-[11px] opacity-75 mt-1" id="lbl_sub_c">C1(90°), C2(135°), C3(180°)</div>
           </button>
 
           <button type="button" onclick="selectRodPole('D')" id="card_leg_d" 
@@ -819,7 +861,7 @@
             </div>
             <div>
               <h4 class="font-bold text-slate-800 text-sm md:text-base">กราฟเปรียบเทียบระดับความสูงติดตั้งจริง (3D Elevation Gauges)</h4>
-              <p class="text-xs text-slate-500">ระดับความสูงยอดเสาอ้างอิงเทียบกับตำแหน่งแท่งล่อฟ้าและสายอากาศทั้ง 4 ขา</p>
+              <p class="text-xs text-slate-500" id="lbl_gauge_sub">ระดับความสูงยอดเสาอ้างอิงเทียบกับตำแหน่งแท่งล่อฟ้าและสายอากาศทุกขา</p>
             </div>
           </div>
           <span class="text-xs font-mono font-bold bg-slate-900 text-sky-400 px-2.5 py-1 rounded-lg border border-slate-800 shadow-sm" id="gauge_tower_top_label">
@@ -827,7 +869,7 @@
           </span>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2" id="container_gauges_grid">
           
           <!-- Column 0: Lightning Rod Tip -->
           <div class="bg-gradient-to-b from-sky-50 to-white p-3 rounded-xl border border-sky-200 flex flex-col items-center justify-between text-center relative overflow-hidden shadow-sm">
@@ -879,7 +921,7 @@
 
           <!-- Column 3: Antenna C (Opposite) -->
           <div class="bg-gradient-to-b from-slate-100 to-white p-3 rounded-xl border border-slate-300 flex flex-col items-center justify-between text-center relative shadow-sm" id="gauge_box_c">
-            <div class="text-[11px] font-bold text-slate-900">
+            <div class="text-[11px] font-bold text-slate-900" id="gauge_title_c">
               🎯 Omni ขา C
             </div>
             <div class="my-3 flex flex-col items-center">
@@ -913,7 +955,7 @@
       </div>
 
       <!-- Dynamic Results Grid (4 Legs A, B, C, D) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div id="results_cards_grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         
         <!-- Pole A Result Card -->
         <div id="res_card_a" onclick="selectRodPole('A')" title="คลิกเพื่อเลือกล่อฟ้าที่ขา A" class="glass-card rounded-2xl p-5 custom-shadow border-t-4 border-sky-600 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md">
@@ -980,7 +1022,7 @@
           </div>
           <div class="space-y-3">
             <div id="res_box_c" class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
-              <div class="text-slate-600" id="res_dist_line_c">ระยะล่อฟ้าไปขา C: <span class="mono font-semibold text-slate-900">${c_opp ? c_opp.toFixed(2) : "2.95"} m</span></div>
+              <div class="text-slate-600" id="res_dist_line_c">ระยะล่อฟ้าไปขา C: <span class="mono font-semibold text-slate-900">2.95 m</span></div>
               <div class="text-slate-500" id="res_formula_c">สูตร: [(ระยะ + (Omni*TAN(P))] / TAN(P)</div>
               <div class="font-semibold mono text-slate-800" id="res_step_c">= 7.10 m</div>
             </div>
@@ -1031,7 +1073,7 @@
       <!-- Master Summary Table -->
       <div class="glass-card rounded-2xl p-6 custom-shadow overflow-x-auto border-t-4 border-slate-900">
         <h4 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2">
-          <span>📋</span> สรุประดับความสูงสายอากาศที่ติดบนเสาทั้ง 4 ขา (A, B, C, D)
+          <span>📋</span> <span id="tbl_summary_heading">สรุประดับความสูงสายอากาศที่ติดบนเสาทั้ง 4 ขา (A, B, C, D)</span>
         </h4>
         <table class="w-full text-left text-xs border-collapse">
           <thead>
@@ -1103,27 +1145,87 @@
       'D': 'B'
     };
 
-    // Coordinates for placing the dynamic sky-blue lightning bolt at each leg
-    const lightningPositions = {
+    // Helper: Determine currently selected calculation mode (4-leg 90/135/180 or 3-leg triangle)
+    function getTowerCalcType() {
+      const el = document.getElementById('in_tower_calc_type');
+      const val = el ? el.value : '4leg_90';
+      if (val === '3leg_tri') {
+        return {
+          type: '3leg_tri',
+          is3Leg: true,
+          angle: 120, // Internal geometry cos(A) = -0.5
+          displayAngle: '120° (สามเหลี่ยม)',
+          file: 'สูตรคำนวน ANT_สามเหลี่ยม.xlsx',
+          sheet: 'เสาสามเหลี่ยม',
+          excelImg: 'antenna_diagram_tri.png',
+          hint: '* เสาสามเหลี่ยมด้านเท่า: <span class="mono text-sky-700 font-semibold">c² = a² + b² - 2ab·cos(120°), cos = -0.5</span>',
+          label: 'สูตรคำนวน ANT_สามเหลี่ยม (Self Support ชนิด 3 ขา)'
+        };
+      } else if (val === '4leg_135') {
+        return {
+          type: '4leg_135',
+          is3Leg: false,
+          angle: 135,
+          displayAngle: '135°',
+          file: 'สูตรคำนวน ANT_135 องศา.xlsx',
+          sheet: '135องศา',
+          excelImg: 'antenna_diagram.png',
+          hint: '* คำนวณตามกฎของโคไซน์: <span class="mono text-sky-700 font-semibold">c² = a² + b² - 2ab·cos(135°)</span>',
+          label: 'สูตรคำนวน ANT_135 องศา (Self Support ชนิด 4 ขา)'
+        };
+      } else if (val === '4leg_180') {
+        return {
+          type: '4leg_180',
+          is3Leg: false,
+          angle: 180,
+          displayAngle: '180°',
+          file: 'สูตรคำนวน ANT_180 องศา.xlsx',
+          sheet: '180องศา',
+          excelImg: 'antenna_diagram.png',
+          hint: '* คำนวณตามกฎของโคไซน์: <span class="mono text-sky-700 font-semibold">c² = a² + b² - 2ab·cos(180°)</span>',
+          label: 'สูตรคำนวน ANT_180 องศา (Self Support ชนิด 4 ขา)'
+        };
+      } else {
+        return {
+          type: '4leg_90',
+          is3Leg: false,
+          angle: 90,
+          displayAngle: '90°',
+          file: 'สูตรคำนวน ANT_90 องศา.xlsx',
+          sheet: '90องศา',
+          excelImg: 'antenna_diagram.png',
+          hint: '* คำนวณตามกฎของโคไซน์: <span class="mono text-sky-700 font-semibold">c² = a² + b² - 2ab·cos(90°)</span>',
+          label: 'สูตรคำนวน ANT_90 องศา (Self Support ชนิด 4 ขา)'
+        };
+      }
+    }
+
+    // Coordinates for placing the dynamic aviation-orange lightning bolt in 4-Leg mode
+    const lightningPositions4Leg = {
       'A': { x: 230, y: 130, scaleX: 1, scaleY: 1 },
       'B': { x: 670, y: 130, scaleX: -1, scaleY: 1 },
       'C': { x: 670, y: 390, scaleX: -1, scaleY: 1 },
       'D': { x: 230, y: 390, scaleX: 1, scaleY: 1 }
     };
 
+    // Coordinates for placing the dynamic aviation-orange lightning bolt in 3-Leg (Triangle) mode
+    const lightningPositions3Leg = {
+      'A': { x: 360, y: 90, scaleX: 1, scaleY: 1 },
+      'B': { x: 150, y: 430, scaleX: 1, scaleY: 1 },
+      'C': { x: 750, y: 430, scaleX: -1, scaleY: 1 }
+    };
+
     function setDiagramView(view) {
       const btn3D = document.getElementById('tab_view_3d');
       const btnInteractive = document.getElementById('tab_view_interactive');
-      const btnStatic = document.getElementById('tab_view_static');
       const container3D = document.getElementById('diagram_3d_container');
       const containerInteractive = document.getElementById('diagram_interactive_container');
-      const containerStatic = document.getElementById('diagram_static_container');
       const headerTitle = document.getElementById('diagram_header_title');
       const headerSub = document.getElementById('diagram_header_sub');
-      const headerIcon = document.getElementById('diagram_header_icon');
+      const type = getTowerCalcType();
 
-      // Reset all tab button styles
-      [btn3D, btnInteractive, btnStatic].forEach(b => {
+      // Reset tab button styles
+      [btn3D, btnInteractive].forEach(b => {
         if (b) {
           b.className = "px-3 py-1.5 font-medium rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center gap-1";
           const ping = b.querySelector('.animate-ping');
@@ -1131,8 +1233,8 @@
         }
       });
 
-      // Hide all view containers inside the black frame
-      [container3D, containerInteractive, containerStatic].forEach(c => {
+      // Hide view containers
+      [container3D, containerInteractive].forEach(c => {
         if (c) {
           c.classList.add('hidden');
           c.classList.remove('flex');
@@ -1150,9 +1252,16 @@
           containerInteractive.classList.remove('hidden');
           containerInteractive.classList.add('flex');
         }
-        if (headerIcon) headerIcon.innerText = "📐";
-        if (headerTitle) headerTitle.innerText = "ผังโครงสร้างเสา 2 มิติ (2D Top View Diagram)";
-        if (headerSub) headerSub.innerText = "ผังแสดงตำแหน่งขาเสา A, B, C, D และมุมจับยึดสายอากาศ Omni ในกรอบสีดำ";
+        if (headerTitle) {
+          headerTitle.innerText = type.is3Leg 
+            ? "ผังโครงสร้างเสาสามเหลี่ยม 2 มิติ (2D Top View Diagram)" 
+            : "ผังโครงสร้างเสา 2 มิติ (2D Top View Diagram)";
+        }
+        if (headerSub) {
+          headerSub.innerText = type.is3Leg 
+            ? "ผังแสดงตำแหน่งขาเสา A, B, C และมุมจับยึดสายอากาศ Omni เสาสามเหลี่ยม 3 ขา" 
+            : "ผังแสดงตำแหน่งขาเสา A, B, C, D และมุมจับยึดสายอากาศ Omni ในกรอบสีดำ";
+        }
       } else if (view === '3d') {
         if (btn3D) {
           btn3D.className = "px-3 py-1.5 font-bold rounded-lg bg-slate-900 text-white shadow-sm transition flex items-center gap-1";
@@ -1162,27 +1271,22 @@
           container3D.classList.remove('hidden');
           container3D.classList.add('flex');
         }
-        if (headerIcon) headerIcon.innerText = "🧊";
-        if (headerTitle) headerTitle.innerText = "โมเดลโครงสร้างเสา 3 มิติ (3D Interactive Tower)";
-        if (headerSub) headerSub.innerText = "หมุน 360° ซูมดูมุมจับยึดและกรวยป้องกันฟ้าผ่าได้แบบ Real-time";
+        if (headerTitle) {
+          headerTitle.innerText = type.is3Leg 
+            ? "โมเดลเสาสามเหลี่ยม 3 มิติ (3D Interactive Triangle Tower)" 
+            : "โมเดลโครงสร้างเสา 3 มิติ (3D Interactive Tower)";
+        }
+        if (headerSub) {
+          headerSub.innerText = type.is3Leg 
+            ? "หมุน 360° เสาสามเหลี่ยม 3 ขา ซูมดูมุมจับยึดและกรวยป้องกันฟ้าผ่าแบบ Real-time" 
+            : "หมุน 360° ซูมดูมุมจับยึดและกรวยป้องกันฟ้าผ่าได้แบบ Real-time";
+        }
         
         if (renderer3D && camera3D) {
           setTimeout(() => {
             on3DWindowResize();
           }, 60);
         }
-      } else if (view === 'static') {
-        if (btnStatic) {
-          btnStatic.className = "px-3 py-1.5 font-bold rounded-lg bg-slate-900 text-white shadow-sm transition flex items-center gap-1";
-          btnStatic.insertAdjacentHTML('beforeend', activeBadge);
-        }
-        if (containerStatic) {
-          containerStatic.classList.remove('hidden');
-          containerStatic.classList.add('flex');
-        }
-        if (headerIcon) headerIcon.innerText = "🖼️";
-        if (headerTitle) headerTitle.innerText = "ภาพร่างต้นฉบับจาก Excel (Drawing 62)";
-        if (headerSub) headerSub.innerText = "ภาพสเก็ตช์อ้างอิงตำแหน่งและมุมจากไฟล์สูตรคำนวน ANT_90 องศา.xlsx";
       }
     }
 
@@ -1503,6 +1607,7 @@
 
       towerGroup3D = new THREE.Group();
 
+      const is3Leg = !!p.is3Leg;
       const towerTopY = 10.0;
       const W = Math.max(0.6, p.width);
       const hw = W / 2;
@@ -1511,7 +1616,6 @@
       const omniH = Math.max(1.0, p.omni);
       const tanVal = Math.max(0.1, p.tanP);
 
-      // Materials (Aviation Obstruction Marking Standard: Red & White Banding)
       // Materials (Aviation Obstruction Marking Standard: Orange & White Banding)
       const orangeSteelMat = new THREE.MeshStandardMaterial({ 
         color: 0xEA580C, // Vivid International Aviation Orange (สีส้มเสาส่งสัญญาณมาตรฐานการบิน)
@@ -1530,17 +1634,44 @@
       const antennaBodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.22, metalness: 0.1 });
       const bracketMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.35, metalness: 0.85 });
 
-      // Leg Top Positions matching 2D SVG
+      // Leg Positions matching 2D SVG geometry
       // Looking down: -Z is North, +Z is South, -X is West, +X is East
-      const legs = {
-        'A': { x: -hw, z: -hw, name: 'A' }, // Front-Left (North-West)
-        'B': { x:  hw, z: -hw, name: 'B' }, // Front-Right (North-East)
-        'C': { x:  hw, z:  hw, name: 'C' }, // Back-Right (South-East)
-        'D': { x: -hw, z:  hw, name: 'D' }  // Back-Left (South-West)
-      };
+      const legs = {};
+      let legKeys = [];
+      let sidePairs = [];
+
+      if (is3Leg) {
+        legKeys = ['A', 'B', 'C'];
+        // Equilateral triangle geometry centered at (0, 0):
+        const Rc = W / Math.sqrt(3);        // ~0.57735 * W (distance center to vertex)
+        const ri = W / (2 * Math.sqrt(3));  // ~0.28868 * W (distance center to edge midpoint)
+
+        legs['A'] = { x: 0,   z: -Rc, name: 'A' }; // North (Apex)
+        legs['B'] = { x: -hw, z:  ri, name: 'B' }; // South-West
+        legs['C'] = { x:  hw, z:  ri, name: 'C' }; // South-East
+
+        sidePairs = [
+          ['A', 'B'], // North-West face
+          ['B', 'C'], // South face
+          ['C', 'A']  // North-East face
+        ];
+      } else {
+        legKeys = ['A', 'B', 'C', 'D'];
+        legs['A'] = { x: -hw, z: -hw, name: 'A' }; // Front-Left (North-West)
+        legs['B'] = { x:  hw, z: -hw, name: 'B' }; // Front-Right (North-East)
+        legs['C'] = { x:  hw, z:  hw, name: 'C' }; // Back-Right (South-East)
+        legs['D'] = { x: -hw, z:  hw, name: 'D' }; // Back-Left (South-West)
+
+        sidePairs = [
+          ['A', 'B'], // North face
+          ['B', 'C'], // East face
+          ['C', 'D'], // South face
+          ['D', 'A']  // West face
+        ];
+      }
 
       // 1. Concrete Pedestals at ground
-      ['A', 'B', 'C', 'D'].forEach(k => {
+      legKeys.forEach(k => {
         const pedGeo = new THREE.BoxGeometry(0.32, 0.25, 0.32);
         const pedMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 });
         const ped = new THREE.Mesh(pedGeo, pedMat);
@@ -1548,11 +1679,11 @@
         towerGroup3D.add(ped);
       });
 
-      // 2. Main 4 Vertical Tubular Steel Legs (Alternating 7 Aviation Red & White Bands)
+      // 2. Main Vertical Tubular Steel Legs (Alternating 7 Aviation Orange & White Bands)
       const numBands = 7;
       const bandH = towerTopY / numBands; // ~1.4286 m per band
 
-      ['A', 'B', 'C', 'D'].forEach(k => {
+      legKeys.forEach(k => {
         for (let b = 0; b < numBands; b++) {
           const yLow = b * bandH;
           const yHigh = (b + 1) * bandH;
@@ -1580,21 +1711,14 @@
         }
       });
 
-      // 3. Horizontal Bracing & Diagonal X-Braces (7 Bays matching Red & White bands)
+      // 3. Horizontal Bracing & Diagonal X-Braces (7 Bays matching Orange & White bands)
       const bayLevels = [];
       for (let b = 0; b <= numBands; b++) {
         bayLevels.push(b * bandH);
       }
       bayLevels[0] = 0.25; // Base frame just above pedestals
 
-      const sidePairs = [
-        ['A', 'B'], // North face
-        ['B', 'C'], // East face
-        ['C', 'D'], // South face
-        ['D', 'A']  // West face
-      ];
-
-      // Horizontal square frames at each level
+      // Horizontal frames at each level
       bayLevels.forEach((y, idx) => {
         const bandIdx = Math.min(idx, numBands - 1);
         const hMat = (bandIdx % 2 === 0) ? redSteelMat : whiteSteelMat;
@@ -1624,14 +1748,28 @@
       }
 
       // 4. Top Platform Deck & Safety Railing
-      const deckGeo = new THREE.BoxGeometry(W * 1.08, 0.06, W * 1.08);
-      const deckMesh = new THREE.Mesh(deckGeo, platformMat);
-      deckMesh.position.set(0, towerTopY + 0.03, 0);
-      towerGroup3D.add(deckMesh);
+      if (is3Leg) {
+        const triShape = new THREE.Shape();
+        const deckMargin = 1.15;
+        triShape.moveTo(legs['A'].x * deckMargin, legs['A'].z * deckMargin);
+        triShape.lineTo(legs['B'].x * deckMargin, legs['B'].z * deckMargin);
+        triShape.lineTo(legs['C'].x * deckMargin, legs['C'].z * deckMargin);
+        triShape.closePath();
+        const deckGeo = new THREE.ExtrudeGeometry(triShape, { depth: 0.06, bevelEnabled: false });
+        deckGeo.rotateX(Math.PI / 2);
+        const deckMesh = new THREE.Mesh(deckGeo, platformMat);
+        deckMesh.position.set(0, towerTopY + 0.06, 0);
+        towerGroup3D.add(deckMesh);
+      } else {
+        const deckGeo = new THREE.BoxGeometry(W * 1.08, 0.06, W * 1.08);
+        const deckMesh = new THREE.Mesh(deckGeo, platformMat);
+        deckMesh.position.set(0, towerTopY + 0.03, 0);
+        towerGroup3D.add(deckMesh);
+      }
 
-      // Top Handrail posts & railing (0.8m height in Aviation Red & White)
+      // Top Handrail posts & railing (0.8m height in Aviation Orange & White)
       const railH = 0.8;
-      ['A', 'B', 'C', 'D'].forEach(k => {
+      legKeys.forEach(k => {
         const postGeo = new THREE.CylinderGeometry(0.02, 0.02, railH, 8);
         const postMesh = new THREE.Mesh(postGeo, redSteelMat);
         postMesh.position.set(legs[k].x, towerTopY + railH / 2, legs[k].z);
@@ -1649,7 +1787,7 @@
       });
 
       // Reference Ring at Tower Top Level (72.00m)
-      const refRingGeo = new THREE.RingGeometry(W * 0.9, W * 0.93, 48);
+      const refRingGeo = new THREE.RingGeometry(W * 0.88, W * 0.92, 48);
       const refRingMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.4, side: THREE.DoubleSide });
       const refRing = new THREE.Mesh(refRingGeo, refRingMat);
       refRing.rotation.x = -Math.PI / 2;
@@ -1742,20 +1880,30 @@
       coneTopRing.visible = isConeVisible3D;
       towerGroup3D.add(coneTopRing);
 
-      // 7. 4 Omni Antennas Mounted to Legs A, B, C, D
-      ['A', 'B', 'C', 'D'].forEach(legKey => {
+      // 7. Omni Antennas Mounted to Legs (3 Legs or 4 Legs)
+      legKeys.forEach(legKey => {
         const leg = legs[legKey];
         const isRod = (legKey === p.currentRodLeg);
-        const isOpp = (legKey === opposites[p.currentRodLeg]);
+        const isOpp = !is3Leg && (legKey === opposites[p.currentRodLeg]);
 
-        // Compute mounting arm offset vector based on angle and rod position matching Drawing 62
+        // Compute mounting arm offset vector based on angle and rod position
         let dx = 0, dz = 0;
         const diag = mDist * Math.SQRT1_2;
 
-        if (p.angle === 90) {
+        if (is3Leg) {
+          // Radial offset along ray from tower center (0,0) through the leg vertex
+          if (legKey === 'A') {
+            dx = 0;
+            dz = -mDist;
+          } else if (legKey === 'B') {
+            dx = -mDist * (Math.sqrt(3) / 2);
+            dz = mDist * 0.5;
+          } else { // 'C'
+            dx = mDist * (Math.sqrt(3) / 2);
+            dz = mDist * 0.5;
+          }
+        } else if (p.angle === 90) {
           // In Drawing 62 (Excel Sheet 90°):
-          // Both legs on the front face point perpendicular to the face (North)
-          // giving exact geometric distance c = sqrt(a^2 + b^2) = 1.92m
           if (p.currentRodLeg === 'A') {
             if (legKey === 'A' || legKey === 'B') { dx = 0; dz = -mDist; }
             else if (legKey === 'D') { dx = -mDist; dz = 0; }
@@ -1953,14 +2101,27 @@
 
     function getRodLeg3DPos() {
       const W = parseFloat(document.getElementById('in_width').value) || 1.2;
-      const hw = W / 2;
-      const map = {
-        'A': { x: -hw, z: -hw },
-        'B': { x:  hw, z: -hw },
-        'C': { x:  hw, z:  hw },
-        'D': { x: -hw, z:  hw }
-      };
-      return map[currentRodLeg] || map['A'];
+      const type = getTowerCalcType();
+      if (type.is3Leg) {
+        const Rc = W / Math.sqrt(3);
+        const ri = W / (2 * Math.sqrt(3));
+        const hw = W / 2;
+        const map3 = {
+          'A': { x: 0, z: -Rc },
+          'B': { x: -hw, z: ri },
+          'C': { x:  hw, z: ri }
+        };
+        return map3[currentRodLeg] || map3['A'];
+      } else {
+        const hw = W / 2;
+        const map4 = {
+          'A': { x: -hw, z: -hw },
+          'B': { x:  hw, z: -hw },
+          'C': { x:  hw, z:  hw },
+          'D': { x: -hw, z:  hw }
+        };
+        return map4[currentRodLeg] || map4['A'];
+      }
     }
 
     function toggleAntennaOrientation() {
@@ -2008,18 +2169,25 @@
       set3DCameraPreset('iso');
     }
 
-    function update3DHUD(rodLeg, angle, rodHeight) {
+    function update3DHUD(rodLeg, angle, rodHeight, is3Leg) {
       const hudRod = document.getElementById('hud_rod_leg');
       const hudAngle = document.getElementById('hud_angle');
       if (hudRod) hudRod.innerText = `ขา ${rodLeg} (${rodHeight.toFixed(2)} m)`;
-      if (hudAngle) hudAngle.innerText = `${angle}°`;
+      if (hudAngle) hudAngle.innerText = is3Leg ? `สามเหลี่ยม (120°)` : `${angle}°`;
 
       const hud2dRod = document.getElementById('hud_2d_rod_leg');
       const hud2dAngle = document.getElementById('hud_2d_angle');
       const hud2dOpp = document.getElementById('hud_2d_opp_leg');
       if (hud2dRod) hud2dRod.innerText = `ขา ${rodLeg} (${rodHeight.toFixed(2)} m)`;
-      if (hud2dAngle) hud2dAngle.innerText = `มุมจับยึด: ${angle}°`;
-      if (hud2dOpp) hud2dOpp.innerText = `ขา ${opposites[rodLeg]}`;
+      if (hud2dAngle) hud2dAngle.innerText = is3Leg ? `เสาสามเหลี่ยม 3 ขา` : `มุมจับยึด: ${angle}°`;
+      if (hud2dOpp) {
+        if (is3Leg) {
+          const otherLegs = ['A', 'B', 'C'].filter(l => l !== rodLeg).join(', ');
+          hud2dOpp.innerText = `ขาข้าง: ${otherLegs}`;
+        } else {
+          hud2dOpp.innerText = `ขา ${opposites[rodLeg]}`;
+        }
+      }
 
       // Update 2D toolbar pole buttons
       ['A', 'B', 'C', 'D'].forEach(l => {
@@ -2031,14 +2199,21 @@
       });
     }
 
-    function update3DElevationGauges(towerH, rod, drops, heights) {
+    function update3DElevationGauges(towerH, rod, drops, heights, is3Leg) {
       const lblTower = document.getElementById('gauge_tower_top_label');
       if (lblTower) lblTower.innerText = `ยอดเสา: ${towerH.toFixed(2)} m`;
 
       const valRod = document.getElementById('gauge_val_rod');
       if (valRod) valRod.innerText = `${(towerH + rod).toFixed(2)} m`;
 
-      ['a', 'b', 'c', 'd'].forEach(k => {
+      const gaugeTitleC = document.getElementById('gauge_title_c');
+      if (gaugeTitleC) {
+        gaugeTitleC.innerText = is3Leg ? "📡 Omni ขา C" : "🎯 Omni ขา C";
+      }
+
+      const activeGauges = is3Leg ? ['a', 'b', 'c'] : ['a', 'b', 'c', 'd'];
+
+      activeGauges.forEach(k => {
         const legUpper = k.toUpperCase();
         const h = heights[legUpper] !== undefined ? heights[legUpper] : towerH;
         const drop = drops[legUpper] !== undefined ? drops[legUpper] : 0;
@@ -2076,43 +2251,72 @@
     }
 
     function selectRodPole(leg) {
+      const type = getTowerCalcType();
+      if (type.is3Leg && leg === 'D') {
+        leg = 'A';
+      }
       currentRodLeg = leg;
       
       // Move SVG lightning bolt
-      const pos = lightningPositions[leg] || lightningPositions['A'];
+      const pos = type.is3Leg 
+        ? (lightningPositions3Leg[leg] || lightningPositions3Leg['A'])
+        : (lightningPositions4Leg[leg] || lightningPositions4Leg['A']);
+      
       const boltGroup = document.getElementById('svg_dynamic_lightning');
       if (boltGroup) {
         boltGroup.setAttribute('transform', `translate(${pos.x}, ${pos.y}) scale(${pos.scaleX}, ${pos.scaleY})`);
       }
 
-      // Update Leg circles highlight in SVG (Blue, White, Silver, Black)
-      ['A', 'B', 'C', 'D'].forEach(l => {
-        const circle = document.getElementById('svg_circle_' + l.toLowerCase());
-        if (circle) {
-          if (l === currentRodLeg) {
-            circle.setAttribute('fill', '#EA580C'); // Aviation Orange active (matching orange lightning rod)
-            circle.setAttribute('stroke', '#FFFFFF'); // White ring
-            circle.setAttribute('stroke-width', '4');
-          } else if (l === opposites[currentRodLeg]) {
-            circle.setAttribute('fill', '#0F172A'); // Deep Black opposite
-            circle.setAttribute('stroke', '#38BDF8'); // Sky Blue highlight
-            circle.setAttribute('stroke-width', '3');
-          } else {
-            circle.setAttribute('fill', '#334155'); // Slate adjacent
-            circle.setAttribute('stroke', '#CBD5E1'); // Silver ring
-            circle.setAttribute('stroke-width', '2.5');
+      // Update Leg circles highlight in SVG
+      if (type.is3Leg) {
+        ['A', 'B', 'C'].forEach(l => {
+          const circle = document.getElementById('svg_circle_tri_' + l.toLowerCase());
+          if (circle) {
+            if (l === currentRodLeg) {
+              circle.setAttribute('fill', '#EA580C'); // Aviation Orange active
+              circle.setAttribute('stroke', '#FFFFFF');
+              circle.setAttribute('stroke-width', '4');
+            } else {
+              circle.setAttribute('fill', '#334155'); // Slate adjacent
+              circle.setAttribute('stroke', '#CBD5E1');
+              circle.setAttribute('stroke-width', '2.5');
+            }
           }
-        }
-      });
+        });
+      } else {
+        ['A', 'B', 'C', 'D'].forEach(l => {
+          const circle = document.getElementById('svg_circle_' + l.toLowerCase());
+          if (circle) {
+            if (l === currentRodLeg) {
+              circle.setAttribute('fill', '#EA580C'); // Aviation Orange active
+              circle.setAttribute('stroke', '#FFFFFF');
+              circle.setAttribute('stroke-width', '4');
+            } else if (l === opposites[currentRodLeg]) {
+              circle.setAttribute('fill', '#0F172A'); // Deep Black opposite
+              circle.setAttribute('stroke', '#38BDF8');
+              circle.setAttribute('stroke-width', '3');
+            } else {
+              circle.setAttribute('fill', '#334155'); // Slate adjacent
+              circle.setAttribute('stroke', '#CBD5E1');
+              circle.setAttribute('stroke-width', '2.5');
+            }
+          }
+        });
+      }
 
       // Update buttons and cards
-      const legSubtitles = { 'A': 'หน้าซ้าย', 'B': 'หน้าขวา', 'C': 'หลังขวา', 'D': 'หลังซ้าย' };
-      ['A', 'B', 'C', 'D'].forEach(l => {
+      const legSubtitles4Leg = { 'A': 'หน้าซ้าย', 'B': 'หน้าขวา', 'C': 'หลังขวา', 'D': 'หลังซ้าย' };
+      const legSubtitles3Leg = { 'A': 'ยอดบน (Apex)', 'B': 'ล่างซ้าย', 'C': 'ล่างขวา' };
+      const legList = type.is3Leg ? ['A', 'B', 'C'] : ['A', 'B', 'C', 'D'];
+
+      legList.forEach(l => {
         const btn = document.getElementById('btn_rod_' + l.toLowerCase());
         const card = document.getElementById('card_leg_' + l.toLowerCase());
         const lblTitle = document.getElementById('lbl_title_' + l.toLowerCase());
         const badgeRole = document.getElementById('badge_role_' + l.toLowerCase());
-        const subText = l === 'A' ? '(เดิมในไฟล์)' : legSubtitles[l];
+        const subText = type.is3Leg 
+          ? legSubtitles3Leg[l] 
+          : (l === 'A' ? '(เดิมในไฟล์)' : legSubtitles4Leg[l]);
         
         if (l === currentRodLeg) {
           if (btn) {
@@ -2120,25 +2324,25 @@
             btn.innerHTML = `<span>ขา ${l} ⚡</span><span class="text-[10px] font-normal opacity-90">${subText}</span>`;
           }
           if (card) {
-            card.className = "p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between cursor-pointer leg-btn-active shadow-sm";
+            card.className = "btn-3d p-2.5 rounded-xl border transition-all text-left flex flex-col justify-between cursor-pointer leg-btn-active shadow-sm";
           }
           if (lblTitle) lblTitle.innerHTML = `ขา ${l} ⚡`;
           if (badgeRole) {
             badgeRole.innerText = "มีล่อฟ้า";
             badgeRole.className = "text-[10px] px-1.5 py-0.5 rounded bg-white/20 text-white font-mono font-bold";
           }
-        } else if (l === opposites[currentRodLeg]) {
+        } else if (!type.is3Leg && l === opposites[currentRodLeg]) {
           if (btn) {
             btn.className = "bg-white border-slate-300 text-slate-700 hover:bg-slate-50 py-2.5 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center";
             btn.innerHTML = `<span>ขา ${l}</span><span class="text-[10px] font-normal opacity-70">${subText}</span>`;
           }
           if (card) {
-            card.className = "p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white transition-all text-left flex flex-col justify-between cursor-pointer hover:shadow-md";
+            card.className = "btn-3d p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 transition-all text-left flex flex-col justify-between cursor-pointer hover:shadow-md";
           }
           if (lblTitle) lblTitle.innerHTML = `ขา ${l}`;
           if (badgeRole) {
             badgeRole.innerText = "ตรงข้ามล่อฟ้า";
-            badgeRole.className = "text-[10px] px-1.5 py-0.5 rounded bg-slate-800 font-mono text-sky-400 font-semibold border border-slate-700";
+            badgeRole.className = "text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono font-medium border border-slate-200";
           }
         } else {
           if (btn) {
@@ -2146,7 +2350,7 @@
             btn.innerHTML = `<span>ขา ${l}</span><span class="text-[10px] font-normal opacity-70">${subText}</span>`;
           }
           if (card) {
-            card.className = "p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 transition-all text-left flex flex-col justify-between cursor-pointer hover:shadow-md";
+            card.className = "btn-3d p-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 transition-all text-left flex flex-col justify-between cursor-pointer hover:shadow-md";
           }
           if (lblTitle) lblTitle.innerHTML = `ขา ${l}`;
           if (badgeRole) {
@@ -2174,6 +2378,7 @@
     }
 
     function resetDefaults() {
+      document.getElementById('in_tower_calc_type').value = "4leg_90";
       document.getElementById('in_angle').value = "90";
       document.getElementById('in_rod').value = "6.50";
       document.getElementById('in_mounting').value = "1.50";
@@ -2186,7 +2391,14 @@
     }
 
     function calculateAll() {
-      const angle = parseFloat(document.getElementById('in_angle').value) || 90;
+      const type = getTowerCalcType();
+      if (type.is3Leg && currentRodLeg === 'D') {
+        currentRodLeg = 'A';
+      }
+
+      const angle = type.angle;
+      document.getElementById('in_angle').value = angle;
+
       const rod = parseFloat(document.getElementById('in_rod').value) || 0;
       const mounting = parseFloat(document.getElementById('in_mounting').value) || 0;
       const width = parseFloat(document.getElementById('in_width').value) || 0;
@@ -2194,9 +2406,30 @@
       const tanP = parseFloat(document.getElementById('in_tan_p').value) || 1;
       const towerH = parseFloat(document.getElementById('in_tower_height').value) || 0;
 
-      // Calculate cos(A) based on angle
+      // Update header titles & badges
+      const mainTitle = document.getElementById('main_dashboard_title');
+      if (mainTitle) {
+        mainTitle.innerText = type.is3Leg 
+          ? "ระบบคำนวณระยะติดตั้งสายอากาศ Omni (Self Support ชนิด 3 ขา)"
+          : "ระบบคำนวณระยะติดตั้งสายอากาศ Omni (Self Support ชนิด 4 ขา)";
+      }
+      const mainSubtitle = document.getElementById('main_dashboard_subtitle');
+      if (mainSubtitle) {
+        mainSubtitle.innerText = type.is3Leg
+          ? "วิเคราะห์และประมวลผลตามสูตรเสาสามเหลี่ยม (Sheet: เสาสามเหลี่ยม) พร้อมโมเดล 3D และผัง 2D"
+          : "วิเคราะห์และประมวลผลตามสูตรทางคณิตศาสตร์จากไฟล์ Excel โดยตรง พร้อมโมเดล 3D แบบเรียลไทม์";
+      }
+      const topBadge = document.getElementById('badge_top_formula');
+      if (topBadge) topBadge.innerText = type.file;
+      const topAngle = document.getElementById('badge_top_angle');
+      if (topAngle) topAngle.innerText = type.is3Leg ? "เสาสามเหลี่ยม (3 ขา)" : `มุม ${angle}°`;
+
+
+      // Calculate cos(A) based on tower type
       let cosA = 0;
-      if (angle === 90) {
+      if (type.is3Leg) {
+        cosA = -0.5; // cos(120°) or cos(240°/300°) as cell B16 in Excel
+      } else if (angle === 90) {
         cosA = 0;
       } else if (angle === 135) {
         cosA = -Math.SQRT1_2; // -0.70710678
@@ -2206,40 +2439,180 @@
         cosA = Math.cos(angle * Math.PI / 180);
       }
 
-      document.getElementById('badge_angle_cos').innerText = `cos(${angle}°) = ${cosA.toFixed(4)}`;
-      document.getElementById('math_lbl_angle').innerText = `A = ${angle}° \u2192 cos(${angle}°) = ${cosA.toFixed(4)}`;
+      const badgeCos = document.getElementById('badge_angle_cos');
+      if (badgeCos) {
+        badgeCos.innerText = type.is3Leg ? "cos(120°) = -0.5000" : `cos(${angle}°) = ${cosA.toFixed(4)}`;
+      }
+      const mathAngle = document.getElementById('math_lbl_angle');
+      if (mathAngle) {
+        mathAngle.innerText = type.is3Leg 
+          ? `A = 120° → cos(120°) = -0.5000 (เสาสามเหลี่ยม)` 
+          : `A = ${angle}° → cos(${angle}°) = ${cosA.toFixed(4)}`;
+      }
+      const formulaHint = document.getElementById('lbl_formula_hint');
+      if (formulaHint) {
+        formulaHint.innerHTML = type.is3Leg
+          ? `* เสาสามเหลี่ยมด้านเท่า: <span class="mono text-sky-700 font-semibold">c² = a² + b² - 2ab·cos(120°), cos = -0.5</span>`
+          : `* คำนวณตามกฎของโคไซน์: <span class="mono text-sky-700 font-semibold">c² = a² + b² - 2ab·cos(${angle}°)</span>`;
+      }
 
-      // Highlight active antenna lines in SVG (Electric Sky Blue)
-      const activeAngleLines = {
-        90: ['a1', 'b1', 'd1'],
-        135: ['a2', 'b2', 'c1', 'c3', 'd2'],
-        180: ['a3', 'b3', 'c2', 'd3']
-      };
-      
-      const allLines = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3', 'c1', 'c2', 'c3', 'd1', 'd2', 'd3'];
-      const activeList = activeAngleLines[angle] || ['a1', 'b1', 'd1'];
+      // Toggle 2D SVG Groups (4-leg vs 3-leg)
+      const svg4LegGroup = document.getElementById('svg_4leg_group');
+      const svg3LegGroup = document.getElementById('svg_3leg_group');
+      if (svg4LegGroup && svg3LegGroup) {
+        if (type.is3Leg) {
+          svg4LegGroup.classList.add('hidden');
+          svg3LegGroup.classList.remove('hidden');
+        } else {
+          svg4LegGroup.classList.remove('hidden');
+          svg3LegGroup.classList.add('hidden');
+        }
+      }
 
-      allLines.forEach(id => {
-        const line = document.getElementById('line_' + id);
-        const txt = document.getElementById('txt_' + id);
-        if (line && txt) {
-          if (activeList.includes(id)) {
-            line.classList.add('active-antenna-line');
-            txt.classList.add('active-antenna-text');
-          } else {
-            line.classList.remove('active-antenna-line');
-            txt.classList.remove('active-antenna-text');
+      // Highlight active antenna lines in SVG
+      if (type.is3Leg) {
+        const triLines = ['tri_a1', 'tri_a2', 'tri_a3', 'tri_b1', 'tri_b2', 'tri_b3', 'tri_c1', 'tri_c2', 'tri_c3'];
+        const activeTri = ['tri_a1', 'tri_b1', 'tri_c1']; // A1(90°), B1(180°), C1(0°) as in sheet เสาสามเหลี่ยม
+        triLines.forEach(id => {
+          const line = document.getElementById('line_' + id);
+          const txt = document.getElementById('txt_' + id);
+          if (line && txt) {
+            if (activeTri.includes(id)) {
+              line.classList.add('active-antenna-line');
+              txt.classList.add('active-antenna-text');
+            } else {
+              line.classList.remove('active-antenna-line');
+              txt.classList.remove('active-antenna-text');
+            }
           }
+        });
+      } else {
+        const activeAngleLines = {
+          90: ['a1', 'b1', 'c1', 'd1'],
+          135: ['a2', 'b2', 'c2', 'd2'],
+          180: ['a3', 'b3', 'c3', 'd3']
+        };
+        const allLines = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3', 'c1', 'c2', 'c3', 'd1', 'd2', 'd3'];
+        const activeList = activeAngleLines[angle] || ['a1', 'b1', 'd1'];
+        allLines.forEach(id => {
+          const line = document.getElementById('line_' + id);
+          const txt = document.getElementById('txt_' + id);
+          if (line && txt) {
+            if (activeList.includes(id)) {
+              line.classList.add('active-antenna-line');
+              txt.classList.add('active-antenna-text');
+            } else {
+              line.classList.remove('active-antenna-line');
+              txt.classList.remove('active-antenna-text');
+            }
+          }
+        });
+      }
+
+      // Toggle Leg D elements visibility
+      const btnRodD = document.getElementById('btn_rod_d');
+      const btn2dD = document.getElementById('btn_2d_pole_d');
+      const cardLegD = document.getElementById('card_leg_d');
+      const gaugeBoxD = document.getElementById('gauge_box_d');
+      const resCardD = document.getElementById('res_card_d');
+      const thColD = document.getElementById('th_col_d');
+      const tblRoleD = document.getElementById('tbl_role_d');
+      const tblDistD = document.getElementById('tbl_dist_d');
+      const tblDropD = document.getElementById('tbl_drop_d');
+      const tblHeightD = document.getElementById('tbl_height_d');
+      const tblActionD = document.getElementById('tbl_action_d');
+
+      const dElements = [btnRodD, btn2dD, cardLegD, gaugeBoxD, resCardD, thColD, tblRoleD, tblDistD, tblDropD, tblHeightD, tblActionD];
+      dElements.forEach(el => {
+        if (el) {
+          if (type.is3Leg) el.classList.add('hidden');
+          else el.classList.remove('hidden');
         }
       });
+
+      // Grid layouts switching
+      const containerBtnRods = document.getElementById('container_btn_rods');
+      if (containerBtnRods) {
+        containerBtnRods.className = type.is3Leg ? "grid grid-cols-3 gap-2" : "grid grid-cols-4 gap-2";
+      }
+
+      const containerCallouts = document.getElementById('container_callout_legs');
+      if (containerCallouts) {
+        containerCallouts.className = type.is3Leg 
+          ? "grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4 text-center text-xs" 
+          : "grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 text-center text-xs";
+      }
+
+      const containerGauges = document.getElementById('container_gauges_grid');
+      if (containerGauges) {
+        containerGauges.className = type.is3Leg 
+          ? "grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2" 
+          : "grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2";
+      }
+
+      const resultsGrid = document.getElementById('results_cards_grid');
+      if (resultsGrid) {
+        resultsGrid.className = type.is3Leg 
+          ? "grid grid-cols-1 md:grid-cols-3 gap-4" 
+          : "grid grid-cols-1 md:grid-cols-2 gap-4";
+      }
+
+      const thColC = document.getElementById('th_col_c');
+      if (thColC) {
+        if (type.is3Leg) {
+          thColC.classList.add('rounded-r-lg');
+          if (thColD) thColD.classList.remove('rounded-r-lg');
+        } else {
+          thColC.classList.remove('rounded-r-lg');
+          if (thColD) thColD.classList.add('rounded-r-lg');
+        }
+      }
+
+      const tblHeading = document.getElementById('tbl_summary_heading');
+      if (tblHeading) {
+        tblHeading.innerText = type.is3Leg 
+          ? "สรุประดับความสูงสายอากาศที่ติดบนเสาทั้ง 3 ขา (A, B, C) - เสาสามเหลี่ยม" 
+          : "สรุประดับความสูงสายอากาศที่ติดบนเสาทั้ง 4 ขา (A, B, C, D)";
+      }
+
+      // Update Subtitles for Rod buttons and Callout cards
+      const btnSubA = document.getElementById('btn_rod_sub_a');
+      const btnSubB = document.getElementById('btn_rod_sub_b');
+      const btnSubC = document.getElementById('btn_rod_sub_c');
+      const btnSubD = document.getElementById('btn_rod_sub_d');
+      if (type.is3Leg) {
+        if (btnSubA) btnSubA.innerText = "ยอดบน (Apex)";
+        if (btnSubB) btnSubB.innerText = "ล่างซ้าย";
+        if (btnSubC) btnSubC.innerText = "ล่างขวา";
+      } else {
+        if (btnSubA) btnSubA.innerText = currentRodLeg === 'A' ? "(เดิมในไฟล์)" : "หน้าซ้าย";
+        if (btnSubB) btnSubB.innerText = "หน้าขวา";
+        if (btnSubC) btnSubC.innerText = "หลังขวา";
+        if (btnSubD) btnSubD.innerText = "หลังซ้าย";
+      }
+
+      const lblSubA = document.getElementById('lbl_sub_a');
+      const lblSubB = document.getElementById('lbl_sub_b');
+      const lblSubC = document.getElementById('lbl_sub_c');
+      const lblSubD = document.getElementById('lbl_sub_d');
+      if (type.is3Leg) {
+        if (lblSubA) lblSubA.innerText = "A1(90°), A2(150°), A3(30°)";
+        if (lblSubB) lblSubB.innerText = "B1(180°), B2(240°), B3(210°)";
+        if (lblSubC) lblSubC.innerText = "C1(0°), C2(300°), C3(330°)";
+      } else {
+        if (lblSubA) lblSubA.innerText = "A1(90°), A2(135°), A3(180°)";
+        if (lblSubB) lblSubB.innerText = "B1(90°), B2(135°), B3(180°)";
+        if (lblSubC) lblSubC.innerText = "C1(90°), C2(135°), C3(180°)";
+        if (lblSubD) lblSubD.innerText = "D1(90°), D2(135°), D3(180°)";
+      }
 
       // 1. Geometry / Law of Cosines for distance C (Adjacent Poles)
       const a2 = mounting * mounting;
       const b2 = width * width;
-      const sum_ab2 = a2 + b2; // J8
-      const cos_part = 2 * mounting * width * cosA; // G11 in Excel
-      const c2 = sum_ab2 - cos_part; // G13 in Excel
-      const c_adj = Math.sqrt(Math.max(0, c2)); // G16 in Excel
+      const sum_ab2 = a2 + b2;
+      const cos_part = 2 * mounting * width * cosA;
+      const c2 = sum_ab2 - cos_part;
+      const c_adj = Math.sqrt(Math.max(0, c2));
 
       document.getElementById('out_a2').innerText = a2.toFixed(4);
       document.getElementById('out_b2').innerText = b2.toFixed(4);
@@ -2253,18 +2626,25 @@
       const mathRod = document.getElementById('math_lbl_rod');
       if (mathRod) mathRod.innerText = "ขา " + currentRodLeg;
       const mathOpp = document.getElementById('math_lbl_opp');
-      if (mathOpp) mathOpp.innerText = "ขา " + opposites[currentRodLeg];
+      if (mathOpp) {
+        if (type.is3Leg) {
+          const others = ['A', 'B', 'C'].filter(l => l !== currentRodLeg).join(' และ ขา ');
+          mathOpp.innerText = `ขา ${others} (สมมาตรเท่ากัน)`;
+        } else {
+          mathOpp.innerText = "ขา " + opposites[currentRodLeg];
+        }
+      }
 
-      // 2. Geometry for Opposite Pole (Matching Excel formulas for each angle)
+      // 2. Geometry for Opposite Pole (only applicable in 4-leg mode)
       let c_opp = 0;
-      if (angle === 90) {
-        c_opp = Math.sqrt(Math.pow(width + mounting, 2) + Math.pow(width, 2));
-      } else if (angle === 135) {
-        // Law of Cosines on diagonal (cell N14 in Excel ANT_135 = 2.955 m)
-        c_opp = Math.sqrt(Math.pow(mounting, 2) + 2 * Math.pow(width, 2) - 2 * mounting * (width * Math.SQRT2) * cosA);
-      } else { // 180°
-        // (width * Root(2)) + mounting (cell G10 in Excel ANT_180 = 3.20 m)
-        c_opp = (width * Math.SQRT2) + mounting;
+      if (!type.is3Leg) {
+        if (angle === 90) {
+          c_opp = Math.sqrt(Math.pow(width + mounting, 2) + Math.pow(width, 2));
+        } else if (angle === 135) {
+          c_opp = Math.sqrt(Math.pow(mounting, 2) + 2 * Math.pow(width, 2) - 2 * mounting * (width * Math.SQRT2) * cosA);
+        } else { // 180°
+          c_opp = (width * Math.SQRT2) + mounting;
+        }
       }
 
       // Base formulas:
@@ -2279,12 +2659,14 @@
       const adj_final_height = towerH - adj_drop;
 
       // C) Opposite Pole:
-      const opp_step_b = (c_opp + (omni * tanP)) / tanP;
-      const opp_drop = opp_step_b - rod;
-      const opp_final_height = towerH - opp_drop;
+      const opp_step_b = !type.is3Leg ? ((c_opp + (omni * tanP)) / tanP) : 0;
+      const opp_drop = !type.is3Leg ? (opp_step_b - rod) : 0;
+      const opp_final_height = !type.is3Leg ? (towerH - opp_drop) : 0;
 
-      // Update 4 cards based on currentRodLeg (Blue, White, Silver, Black theme)
-      ['A', 'B', 'C', 'D'].forEach(leg => {
+      // Update cards & table
+      const processLegs = type.is3Leg ? ['A', 'B', 'C'] : ['A', 'B', 'C', 'D'];
+
+      processLegs.forEach(leg => {
         const lower = leg.toLowerCase();
         const card = document.getElementById('res_card_' + lower);
         const badge = document.getElementById('res_badge_' + lower);
@@ -2293,7 +2675,6 @@
         const descEl = document.getElementById('res_desc_' + lower);
         const heightEl = document.getElementById('res_final_height_' + lower);
         
-        // Table elements
         const tblRole = document.getElementById('tbl_role_' + lower);
         const tblDist = document.getElementById('tbl_dist_' + lower);
         const tblDrop = document.getElementById('tbl_drop_' + lower);
@@ -2302,119 +2683,165 @@
         const thCol = document.getElementById('th_col_' + lower);
 
         if (leg === currentRodLeg) {
-          // --- Pole with Lightning Rod (Sky Blue Highlight) ---
-          thCol.innerHTML = `เสาต้นที่ ${leg} <span class="text-sky-300 font-bold">(ล่อฟ้า ⚡)</span>`;
-          card.className = "glass-card rounded-2xl p-5 custom-shadow border-t-4 border-sky-600 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md";
-          badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-900 border border-sky-200";
-          badge.innerHTML = `⚡ เสาต้นที่ ${leg} (เสาที่มีล่อฟ้า)`;
+          // --- Pole with Lightning Rod ---
+          if (thCol) thCol.innerHTML = `เสาต้นที่ ${leg} <span class="text-sky-300 font-bold">(ล่อฟ้า ⚡)</span>`;
+          if (card) card.className = "glass-card rounded-2xl p-5 custom-shadow border-t-4 border-sky-600 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md";
+          if (badge) {
+            badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-900 border border-sky-200";
+            badge.innerHTML = `⚡ เสาต้นที่ ${leg} (เสาที่มีล่อฟ้า)`;
+          }
 
-          box.className = "bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1";
-          box.innerHTML = `
-            <div class="text-slate-500">สูตร (A): [mounting + (Omni*TAN(P))] / TAN(P)</div>
-            <div class="font-semibold mono text-slate-800">= ${rod_step_a.toFixed(4)} m</div>
-          `;
+          if (box) {
+            box.className = "bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1";
+            box.innerHTML = `
+              <div class="text-slate-500">สูตร: [mounting + (Omni*TAN(P))] / TAN(P)</div>
+              <div class="font-semibold mono text-slate-800">= ${rod_step_a.toFixed(4)} m</div>
+            `;
+          }
 
-          dropEl.innerText = (rod_drop >= 0 ? "+" : "") + rod_drop.toFixed(4) + " m";
-          dropEl.className = "text-2xl font-bold mono " + (rod_drop <= 0 ? "text-sky-600" : "text-slate-800");
-          descEl.innerText = rod_drop <= 0 
-            ? "* ค่าติดลบ: เพิ่มระดับขึ้นได้ " + Math.abs(rod_drop).toFixed(2) + " m เหนือยอดเสา"
-            : "* ค่าเป็นบวก: ต้องลดระยะลง " + rod_drop.toFixed(2) + " m จากยอดเสา";
-          descEl.className = "text-xs font-medium mt-0.5 " + (rod_drop <= 0 ? "text-sky-700" : "text-slate-700");
-          heightEl.innerText = rod_final_height.toFixed(2) + " m";
+          if (dropEl) {
+            dropEl.innerText = (rod_drop >= 0 ? "+" : "") + rod_drop.toFixed(4) + " m";
+            dropEl.className = "text-2xl font-bold mono " + (rod_drop <= 0 ? "text-sky-600" : "text-slate-800");
+          }
+          if (descEl) {
+            descEl.innerText = rod_drop <= 0 
+              ? "* ค่าติดลบ: เพิ่มระดับขึ้นได้ " + Math.abs(rod_drop).toFixed(2) + " m เหนือยอดเสา"
+              : "* ค่าเป็นบวก: ต้องลดระยะลง " + rod_drop.toFixed(2) + " m จากยอดเสา";
+            descEl.className = "text-xs font-medium mt-0.5 " + (rod_drop <= 0 ? "text-sky-700" : "text-slate-700");
+          }
+          if (heightEl) heightEl.innerText = rod_final_height.toFixed(2) + " m";
 
-          // Table
-          tblRole.innerText = "มีล่อฟ้า ⚡";
-          tblRole.className = "p-3 text-center mono font-bold text-sky-600";
-          tblDist.innerText = mounting.toFixed(2) + " m (Mounting)";
-          tblDist.className = "p-3 text-center mono font-semibold text-slate-800";
-          tblDrop.innerText = (rod_drop >= 0 ? "+" : "") + rod_drop.toFixed(2) + " m";
-          tblDrop.className = "p-3 text-center mono font-bold " + (rod_drop <= 0 ? "text-sky-600" : "text-slate-800");
-          tblHeight.innerText = rod_final_height.toFixed(2) + " m";
-          tblAction.innerText = rod_drop <= 0 
-            ? "สูงกว่ายอดเสา +" + Math.abs(rod_drop).toFixed(2) + " m" 
-            : "ต่ำกว่ายอดเสา -" + rod_drop.toFixed(2) + " m";
-          tblAction.className = "p-3 text-center font-medium " + (rod_drop <= 0 ? "text-sky-600" : "text-slate-700");
+          if (tblRole) {
+            tblRole.innerText = "มีล่อฟ้า ⚡";
+            tblRole.className = "p-3 text-center mono font-bold text-sky-600";
+          }
+          if (tblDist) {
+            tblDist.innerText = mounting.toFixed(2) + " m (Mounting)";
+            tblDist.className = "p-3 text-center mono font-semibold text-slate-800";
+          }
+          if (tblDrop) {
+            tblDrop.innerText = (rod_drop >= 0 ? "+" : "") + rod_drop.toFixed(2) + " m";
+            tblDrop.className = "p-3 text-center mono font-bold " + (rod_drop <= 0 ? "text-sky-600" : "text-slate-800");
+          }
+          if (tblHeight) tblHeight.innerText = rod_final_height.toFixed(2) + " m";
+          if (tblAction) {
+            tblAction.innerText = rod_drop <= 0 
+              ? "สูงกว่ายอดเสา +" + Math.abs(rod_drop).toFixed(2) + " m" 
+              : "ต่ำกว่ายอดเสา -" + rod_drop.toFixed(2) + " m";
+            tblAction.className = "p-3 text-center font-medium " + (rod_drop <= 0 ? "text-sky-600" : "text-slate-700");
+          }
 
-        } else if (leg === opposites[currentRodLeg]) {
-          // --- Opposite Pole (Deep Obsidian Black / Silver) ---
-          thCol.innerHTML = `เสาต้นที่ ${leg} <span class="text-slate-300 font-medium">(ตรงข้าม)</span>`;
-          card.className = "glass-card rounded-2xl p-5 custom-shadow border-t-4 border-slate-900 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md";
-          badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-900 text-white border border-slate-700";
-          badge.innerHTML = `🎯 เสาต้นที่ ${leg} (ตรงข้ามล่อฟ้า)`;
+        } else if (!type.is3Leg && leg === opposites[currentRodLeg]) {
+          // --- Opposite Pole (4-leg mode only) ---
+          if (thCol) thCol.innerHTML = `เสาต้นที่ ${leg} <span class="text-slate-300 font-medium">(ตรงข้าม)</span>`;
+          if (card) card.className = "glass-card rounded-2xl p-5 custom-shadow border-t-4 border-slate-900 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md";
+          if (badge) {
+            badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-900 text-white border border-slate-700";
+            badge.innerHTML = `🎯 เสาต้นที่ ${leg} (ตรงข้ามล่อฟ้า)`;
+          }
 
-          box.className = "bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1";
-          box.innerHTML = `
-            <div class="text-slate-600">ระยะล่อฟ้าไปขา ${leg} (มุม ${angle}°): <span class="mono font-semibold text-slate-900">${c_opp.toFixed(2)} m</span></div>
-            <div class="text-slate-500">สูตร: [(${c_opp.toFixed(2)} + (Omni*TAN(P))] / TAN(P)</div>
-            <div class="font-semibold mono text-slate-800">= ${opp_step_b.toFixed(4)} m</div>
-          `;
+          if (box) {
+            box.className = "bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1";
+            box.innerHTML = `
+              <div class="text-slate-600">ระยะล่อฟ้าไปขา ${leg} (มุม ${angle}°): <span class="mono font-semibold text-slate-900">${c_opp.toFixed(2)} m</span></div>
+              <div class="text-slate-500">สูตร: [(${c_opp.toFixed(2)} + (Omni*TAN(P))] / TAN(P)</div>
+              <div class="font-semibold mono text-slate-800">= ${opp_step_b.toFixed(4)} m</div>
+            `;
+          }
 
-          dropEl.innerText = (opp_drop >= 0 ? "+" : "") + opp_drop.toFixed(4) + " m";
-          dropEl.className = "text-2xl font-bold mono " + (opp_drop <= 0 ? "text-sky-600" : "text-slate-900");
-          descEl.innerText = opp_drop <= 0 
-            ? "* ค่าติดลบ: เพิ่มระดับขึ้นได้ " + Math.abs(opp_drop).toFixed(2) + " m เหนือยอดเสา"
-            : "* ค่าเป็นบวก: ต้องลดระยะลง " + opp_drop.toFixed(2) + " m จากยอดเสา";
-          descEl.className = "text-xs font-medium mt-0.5 " + (opp_drop <= 0 ? "text-sky-700" : "text-slate-700");
-          heightEl.innerText = opp_final_height.toFixed(2) + " m";
+          if (dropEl) {
+            dropEl.innerText = (opp_drop >= 0 ? "+" : "") + opp_drop.toFixed(4) + " m";
+            dropEl.className = "text-2xl font-bold mono " + (opp_drop <= 0 ? "text-sky-600" : "text-slate-900");
+          }
+          if (descEl) {
+            descEl.innerText = opp_drop <= 0 
+              ? "* ค่าติดลบ: เพิ่มระดับขึ้นได้ " + Math.abs(opp_drop).toFixed(2) + " m เหนือยอดเสา"
+              : "* ค่าเป็นบวก: ต้องลดระยะลง " + opp_drop.toFixed(2) + " m จากยอดเสา";
+            descEl.className = "text-xs font-medium mt-0.5 " + (opp_drop <= 0 ? "text-sky-700" : "text-slate-700");
+          }
+          if (heightEl) heightEl.innerText = opp_final_height.toFixed(2) + " m";
 
-          // Table
-          tblRole.innerText = "ตรงข้ามล่อฟ้า";
-          tblRole.className = "p-3 text-center mono text-slate-900 font-bold";
-          tblDist.innerText = c_opp.toFixed(2) + " m (ค่า C ตรงข้าม)";
-          tblDist.className = "p-3 text-center mono font-bold text-slate-900";
-          tblDrop.innerText = (opp_drop >= 0 ? "+" : "") + opp_drop.toFixed(2) + " m";
-          tblDrop.className = "p-3 text-center mono font-bold " + (opp_drop <= 0 ? "text-sky-600" : "text-slate-900");
-          tblHeight.innerText = opp_final_height.toFixed(2) + " m";
-          tblAction.innerText = opp_drop <= 0 
-            ? "สูงกว่ายอดเสา +" + Math.abs(opp_drop).toFixed(2) + " m" 
-            : "ต่ำกว่ายอดเสา -" + opp_drop.toFixed(2) + " m";
-          tblAction.className = "p-3 text-center font-medium " + (opp_drop <= 0 ? "text-sky-600" : "text-slate-700");
+          if (tblRole) {
+            tblRole.innerText = "ตรงข้ามล่อฟ้า";
+            tblRole.className = "p-3 text-center mono text-slate-900 font-bold";
+          }
+          if (tblDist) {
+            tblDist.innerText = c_opp.toFixed(2) + " m (ค่า C ตรงข้าม)";
+            tblDist.className = "p-3 text-center mono font-bold text-slate-900";
+          }
+          if (tblDrop) {
+            tblDrop.innerText = (opp_drop >= 0 ? "+" : "") + opp_drop.toFixed(2) + " m";
+            tblDrop.className = "p-3 text-center mono font-bold " + (opp_drop <= 0 ? "text-sky-600" : "text-slate-900");
+          }
+          if (tblHeight) tblHeight.innerText = opp_final_height.toFixed(2) + " m";
+          if (tblAction) {
+            tblAction.innerText = opp_drop <= 0 
+              ? "สูงกว่ายอดเสา +" + Math.abs(opp_drop).toFixed(2) + " m" 
+              : "ต่ำกว่ายอดเสา -" + opp_drop.toFixed(2) + " m";
+            tblAction.className = "p-3 text-center font-medium " + (opp_drop <= 0 ? "text-sky-600" : "text-slate-700");
+          }
 
         } else {
-          // --- Adjacent Pole (Silver / Slate) ---
-          thCol.innerHTML = `เสาต้นที่ ${leg} <span class="text-slate-300 font-medium">(ด้านข้าง)</span>`;
-          card.className = "glass-card rounded-2xl p-5 custom-shadow border-t-4 border-slate-400 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md";
-          badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300";
-          badge.innerHTML = `📡 เสาต้นที่ ${leg} (เสาด้านข้าง)`;
+          // --- Adjacent Pole (Both side legs in 3-leg mode, or adjacent legs in 4-leg mode) ---
+          if (thCol) thCol.innerHTML = `เสาต้นที่ ${leg} <span class="text-slate-300 font-medium">(ด้านข้าง)</span>`;
+          if (card) card.className = "glass-card rounded-2xl p-5 custom-shadow border-t-4 border-slate-400 relative overflow-hidden transition-all bg-white cursor-pointer hover:shadow-md";
+          if (badge) {
+            badge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300";
+            badge.innerHTML = `📡 เสาต้นที่ ${leg} (เสาด้านข้าง)`;
+          }
 
-          box.className = "bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1";
-          box.innerHTML = `
-            <div class="text-slate-500">ระยะล่อฟ้าไปขา ${leg} (มุม ${angle}°): <span class="mono font-semibold text-slate-800">${c_adj.toFixed(2)} m</span></div>
-            <div class="text-slate-500">สูตร (B): [(A) + (Omni*TAN(P))] / TAN(P)</div>
-            <div class="font-semibold mono text-slate-800">= ${adj_step_b.toFixed(4)} m</div>
-          `;
+          const angleDesc = type.is3Leg ? "120° สามเหลี่ยม" : `มุม ${angle}°`;
+          if (box) {
+            box.className = "bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1";
+            box.innerHTML = `
+              <div class="text-slate-500">ระยะล่อฟ้าไปขา ${leg} (${angleDesc}): <span class="mono font-semibold text-slate-800">${c_adj.toFixed(2)} m</span></div>
+              <div class="text-slate-500">สูตร: [(ระยะ + (Omni*TAN(P))] / TAN(P)</div>
+              <div class="font-semibold mono text-slate-800">= ${adj_step_b.toFixed(4)} m</div>
+            `;
+          }
 
-          dropEl.innerText = (adj_drop >= 0 ? "+" : "") + adj_drop.toFixed(4) + " m";
-          dropEl.className = "text-2xl font-bold mono " + (adj_drop <= 0 ? "text-sky-600" : "text-slate-800");
-          descEl.innerText = adj_drop <= 0 
-            ? "* ค่าติดลบ: เพิ่มระดับขึ้นได้ " + Math.abs(adj_drop).toFixed(2) + " m เหนือยอดเสา"
-            : "* ค่าเป็นบวก: ต้องลดระยะลง " + adj_drop.toFixed(2) + " m จากยอดเสา";
-          descEl.className = "text-xs font-medium mt-0.5 " + (adj_drop <= 0 ? "text-sky-700" : "text-slate-700");
-          heightEl.innerText = adj_final_height.toFixed(2) + " m";
+          if (dropEl) {
+            dropEl.innerText = (adj_drop >= 0 ? "+" : "") + adj_drop.toFixed(4) + " m";
+            dropEl.className = "text-2xl font-bold mono " + (adj_drop <= 0 ? "text-sky-600" : "text-slate-800");
+          }
+          if (descEl) {
+            descEl.innerText = adj_drop <= 0 
+              ? "* ค่าติดลบ: เพิ่มระดับขึ้นได้ " + Math.abs(adj_drop).toFixed(2) + " m เหนือยอดเสา"
+              : "* ค่าเป็นบวก: ต้องลดระยะลง " + adj_drop.toFixed(2) + " m จากยอดเสา";
+            descEl.className = "text-xs font-medium mt-0.5 " + (adj_drop <= 0 ? "text-sky-700" : "text-slate-700");
+          }
+          if (heightEl) heightEl.innerText = adj_final_height.toFixed(2) + " m";
 
-          // Table
-          tblRole.innerText = "เสาด้านข้าง";
-          tblRole.className = "p-3 text-center mono text-slate-600 font-medium";
-          tblDist.innerText = c_adj.toFixed(2) + " m (ค่า C)";
-          tblDist.className = "p-3 text-center mono font-semibold text-slate-800";
-          tblDrop.innerText = (adj_drop >= 0 ? "+" : "") + adj_drop.toFixed(2) + " m";
-          tblDrop.className = "p-3 text-center mono font-bold " + (adj_drop <= 0 ? "text-sky-600" : "text-slate-800");
-          tblHeight.innerText = adj_final_height.toFixed(2) + " m";
-          tblAction.innerText = adj_drop <= 0 
-            ? "สูงกว่ายอดเสา +" + Math.abs(adj_drop).toFixed(2) + " m" 
-            : "ต่ำกว่ายอดเสา -" + adj_drop.toFixed(2) + " m";
-          tblAction.className = "p-3 text-center font-medium " + (adj_drop <= 0 ? "text-sky-600" : "text-slate-700");
+          if (tblRole) {
+            tblRole.innerText = "เสาด้านข้าง";
+            tblRole.className = "p-3 text-center mono text-slate-600 font-medium";
+          }
+          if (tblDist) {
+            tblDist.innerText = c_adj.toFixed(2) + " m (ค่า C)";
+            tblDist.className = "p-3 text-center mono font-semibold text-slate-800";
+          }
+          if (tblDrop) {
+            tblDrop.innerText = (adj_drop >= 0 ? "+" : "") + adj_drop.toFixed(2) + " m";
+            tblDrop.className = "p-3 text-center mono font-bold " + (adj_drop <= 0 ? "text-sky-600" : "text-slate-800");
+          }
+          if (tblHeight) tblHeight.innerText = adj_final_height.toFixed(2) + " m";
+          if (tblAction) {
+            tblAction.innerText = adj_drop <= 0 
+              ? "สูงกว่ายอดเสา +" + Math.abs(adj_drop).toFixed(2) + " m" 
+              : "ต่ำกว่ายอดเสา -" + adj_drop.toFixed(2) + " m";
+            tblAction.className = "p-3 text-center font-medium " + (adj_drop <= 0 ? "text-sky-600" : "text-slate-700");
+          }
         }
       });
 
       // Construct drops and heights maps for 3D engine & Elevation Gauges
       const drops = {};
       const heights = {};
-      ['A', 'B', 'C', 'D'].forEach(leg => {
+      processLegs.forEach(leg => {
         if (leg === currentRodLeg) {
           drops[leg] = rod_drop;
           heights[leg] = rod_final_height;
-        } else if (leg === opposites[currentRodLeg]) {
+        } else if (!type.is3Leg && leg === opposites[currentRodLeg]) {
           drops[leg] = opp_drop;
           heights[leg] = opp_final_height;
         } else {
@@ -2424,13 +2851,14 @@
       });
 
       // Update 3D HUD Telemetry
-      update3DHUD(currentRodLeg, angle, rod);
+      update3DHUD(currentRodLeg, angle, rod, type.is3Leg);
 
       // Update 3D Elevation Level Gauges
-      update3DElevationGauges(towerH, rod, drops, heights);
+      update3DElevationGauges(towerH, rod, drops, heights, type.is3Leg);
 
       // Rebuild Procedural 3D Tower Lattice Model
       build3DModel({
+        is3Leg: type.is3Leg,
         width: width,
         rod: rod,
         mounting: mounting,
